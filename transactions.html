@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transactions — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Ledger</div>
+      <h1>Transaction history</h1>
+      <p class="lead small">A demo table for deposits, trades, verification milestones, and withdrawals.</p>
+    </section>
+
+    <section class="cards-3 section">
+      <div class="summary-card glass"><span class="muted">Entries</span><strong id="txCount">4 items</strong></div>
+      <div class="summary-card glass"><span class="muted">Latest status</span><strong>Mixed</strong></div>
+      <div class="summary-card glass"><span class="muted">Export readiness</span><strong>UI only</strong></div>
+    </section>
+
+    <section class="panel glass">
+      <div class="panel-head"><h2>All activity</h2><div class="chip-row"><a class="btn btn-secondary btn-sm" href="deposit.html">Deposit</a><a class="btn btn-secondary btn-sm" href="withdraw.html">Withdraw</a></div></div>
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>Asset</th><th>Amount</th><th>Value</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody id="transactionsTableBody"></tbody>
+      </table>
+    </section>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

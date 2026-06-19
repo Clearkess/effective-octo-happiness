@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockHarbor Markets — Crypto investing interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <div class="ticker-wrap">
+    <div class="ticker-inner container">
+      <div class="pill live">Live market demo</div>
+      <div class="ticker-track" aria-label="market ticker">
+        <div class="ticker-item"><b>BTC</b><span data-price="btc">$104,821</span><span data-change="btc" class="up">+2.1%</span></div>
+        <div class="ticker-item"><b>ETH</b><span data-price="eth">$5,148</span><span data-change="eth" class="up">+1.4%</span></div>
+        <div class="ticker-item"><b>SOL</b><span data-price="sol">$311</span><span data-change="sol" class="down">-0.5%</span></div>
+        <div class="ticker-item"><b>LINK</b><span data-price="link">$28.91</span><span data-change="link" class="up">+3.0%</span></div>
+        <div class="ticker-item"><b>BTC</b><span data-price="btc">$104,821</span><span data-change="btc" class="up">+2.1%</span></div>
+        <div class="ticker-item"><b>ETH</b><span data-price="eth">$5,148</span><span data-change="eth" class="up">+1.4%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="site-shell">
+    <header class="topbar container">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span><span>BlockHarbor Markets</span></a>
+      <nav class="nav desktop-nav">
+        <a href="#features">Features</a>
+        <a href="#markets">Markets</a>
+        <a href="#testimonials">Reviews</a>
+        <a href="#faq">FAQ</a>
+        <a href="dashboard.html">Dashboard</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="login.html">Log in</a>
+        <a class="btn btn-primary" href="signup.html">Create account</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container">
+        <div class="hero-copy">
+          <div class="eyebrow">Training • Portfolio • Wallet-ready UI</div>
+          <h1>Original crypto-platform frontend with onboarding, KYC, and portfolio flows.</h1>
+          <p class="lead">This is a distinct static implementation inspired by common crypto brokerage patterns. It includes auth, wallet connect, KYC progress, transaction history, deposit and withdrawal screens, and a persistent demo dashboard.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="signup.html">Start onboarding</a>
+            <a class="btn btn-secondary" href="dashboard.html">Open dashboard</a>
+          </div>
+          <div class="hero-badges">
+            <span>Responsive layout</span>
+            <span>Wallet connect UI</span>
+            <span>Persistent demo state</span>
+          </div>
+          <div class="stats-inline section">
+            <div class="summary-card glass"><span class="muted">Supported markets</span><strong data-counter="120" data-suffix="+">0</strong></div>
+            <div class="summary-card glass"><span class="muted">Strategy modules</span><strong data-counter="12">0</strong></div>
+            <div class="summary-card glass"><span class="muted">Demo uptime</span><strong data-counter="99" data-suffix="%">0</strong></div>
+          </div>
+        </div>
+        <div class="hero-card glass">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <span>Portfolio value</span>
+              <strong>$128,440.92</strong>
+              <small class="up">+6.42% today</small>
+            </div>
+            <div class="stat-card">
+              <span>Yield products</span>
+              <strong>12</strong>
+              <small>Flexible dashboard widgets</small>
+            </div>
+            <div class="stat-card wide">
+              <span>Market watch</span>
+              <div class="ticker-row">
+                <div><b>BTC</b><em data-price="btc">$104,821</em></div>
+                <div><b>ETH</b><em data-price="eth">$5,148</em></div>
+                <div><b>SOL</b><em data-price="sol">$311</em></div>
+              </div>
+            </div>
+            <div class="stat-card wide">
+              <span>Demo workflow</span>
+              <div class="metric-row">
+                <div class="metric-pill">1. Create account</div>
+                <div class="metric-pill">2. Finish KYC</div>
+                <div class="metric-pill">3. Reach dashboard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="container section">
+        <div class="section-heading">
+          <div class="eyebrow">Feature set</div>
+          <h2>Everything needed for a polished crypto onboarding experience</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card glass"><h3>Auth screens</h3><p>Sign up, log in, password visibility toggles, forgot-password modal, and demo session persistence.</p></article>
+          <article class="feature-card glass"><h3>KYC flow UI</h3><p>Five-step verification tracker for profile, identity upload, proof of address, selfie, and final review.</p></article>
+          <article class="feature-card glass"><h3>Wallet connect UI</h3><p>MetaMask detection, connect button, wallet state persistence, and dashboard badge updates.</p></article>
+          <article class="feature-card glass"><h3>User dashboard</h3><p>Portfolio cards, allocation chart, holdings table, activity feed, and quick action links.</p></article>
+          <article class="feature-card glass"><h3>Transactions</h3><p>Dedicated transaction history page with deposits, buys, withdrawals, and KYC-related activity.</p></article>
+          <article class="feature-card glass"><h3>Funding screens</h3><p>Deposit and withdrawal pages with QR placeholder, copy address, and validation-ready forms.</p></article>
+        </div>
+      </section>
+
+      <section id="markets" class="container section">
+        <div class="section-heading">
+          <div class="eyebrow">Markets</div>
+          <h2>Live demo market overview</h2>
+        </div>
+        <div class="market-grid">
+          <div class="market-card glass"><span>Bitcoin</span><strong data-price="btc">$104,821</strong><small data-change="btc" class="up">+2.1%</small></div>
+          <div class="market-card glass"><span>Ethereum</span><strong data-price="eth">$5,148</strong><small data-change="eth" class="up">+1.4%</small></div>
+          <div class="market-card glass"><span>Solana</span><strong data-price="sol">$311</strong><small data-change="sol" class="down">-0.5%</small></div>
+          <div class="market-card glass"><span>Chainlink</span><strong data-price="link">$28.91</strong><small data-change="link" class="up">+3.0%</small></div>
+        </div>
+      </section>
+
+      <section class="container section info-grid">
+        <div class="mini-card glass"><h3>Onboarding path</h3><p class="muted">Landing → signup → KYC → dashboard → funding → transaction review.</p></div>
+        <div class="mini-card glass"><h3>Demo persistence</h3><p class="muted">Local state keeps your onboarding, wallet, and settings progress.</p></div>
+        <div class="mini-card glass"><h3>Theme toggle</h3><p class="muted">Switch dark and light modes from the landing page or dashboard.</p></div>
+        <div class="mini-card glass"><h3>Original frontend</h3><p class="muted">Created as a distinct codebase rather than a direct reproduction of the reference site.</p></div>
+      </section>
+
+      <section class="container section cta-band glass">
+        <div>
+          <div class="eyebrow">Get started</div>
+          <h2>Move from landing page to dashboard in a clean, demo-ready flow.</h2>
+          <p class="lead small">Ideal as a starter kit for backend integration, API wiring, and deployment.</p>
+        </div>
+        <div class="panel-actions">
+          <a class="btn btn-primary" href="signup.html">Open signup</a>
+          <a class="btn btn-secondary" href="transactions.html">See transactions</a>
+        </div>
+      </section>
+
+      <section id="testimonials" class="container section">
+        <div class="section-heading">
+          <div class="eyebrow">Demo reviews</div>
+          <h2>Example social-proof components for the landing page</h2>
+        </div>
+        <div class="testimonial-grid">
+          <article class="testimonial glass"><div class="quote-mark">“</div><p>The onboarding journey feels polished and easy to extend into production.</p><strong>Product designer</strong></article>
+          <article class="testimonial glass"><div class="quote-mark">“</div><p>The dashboard structure is clean enough for real API integration and portfolio logic.</p><strong>Frontend engineer</strong></article>
+          <article class="testimonial glass"><div class="quote-mark">“</div><p>Great base for building a crypto brokerage demo without copying a source site literally.</p><strong>Founder</strong></article>
+        </div>
+      </section>
+
+      <section id="faq" class="container section">
+        <div class="section-heading">
+          <div class="eyebrow">FAQ</div>
+          <h2>Common onboarding questions</h2>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item glass" open><summary>How do I create an account</summary><p>Create an account, verify your email, complete profile details, and continue to the KYC screen.</p></details>
+          <details class="faq-item glass"><summary>How does identity verification work</summary><p>The KYC page uses a step-based interface for profile, document upload, selfie check, and proof of address.</p></details>
+          <details class="faq-item glass"><summary>How do deposits and withdrawals appear</summary><p>The dashboard links to deposit and withdraw pages with a QR placeholder, copy address actions, and submission-ready forms.</p></details>
+          <details class="faq-item glass"><summary>Can I connect a wallet</summary><p>Yes. The demo includes a MetaMask-ready wallet connect UI and a fallback state if no provider is available.</p></details>
+        </div>
+      </section>
+
+      <section class="container section glass">
+        <div class="section-heading compact">
+          <div class="eyebrow">Newsletter</div>
+          <h2>Get product updates</h2>
+          <p class="lead small">Demo-only signup form for future CRM or mailing list integration.</p>
+        </div>
+        <form id="newsletterForm" class="newsletter-form">
+          <input type="email" placeholder="Enter your email" required />
+          <button class="btn btn-primary" type="submit">Subscribe</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="container footer">
+      <div>
+        <strong>BlockHarbor Markets</strong>
+        <p>Original demo frontend for crypto-style onboarding and dashboard experiences.</p>
+        <p class="footer-note">Built as a distinct static implementation inspired by a generic crypto-finance feature set.</p>
+      </div>
+      <div class="footer-links">
+        <a href="login.html">Login</a>
+        <a href="signup.html">Signup</a>
+        <a href="kyc.html">KYC</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="settings.html">Settings</a>
+      </div>
+    </footer>
+  </div>
+
+  <button id="chatLauncher" class="chat-launcher">Support</button>
+  <div id="chatPanel" class="chat-panel hidden">
+    <div class="chat-header"><strong>Support placeholder</strong><button class="icon-btn" data-close-chat>&times;</button></div>
+    <div class="chat-body">
+      <p>This is a UI placeholder for a future live chat integration.</p>
+      <div class="chat-bubble agent">Hi, how can we help with your onboarding today?</div>
+      <div class="chat-bubble user">I need help verifying my wallet.</div>
+    </div>
+    <div class="chat-footer"><input type="text" placeholder="Type a message" disabled /><button class="btn btn-primary btn-sm" disabled>Send</button></div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

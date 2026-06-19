@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Console — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true" data-admin-required="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Admin console</div>
+      <h1>User and KYC review</h1>
+      <p class="lead small">Review uploaded KYC files, inspect user accounts, and monitor platform activity totals.</p>
+    </section>
+
+    <section class="cards-3 section" id="adminStatsGrid">
+      <div class="summary-card glass"><span class="muted">Users</span><strong id="adminUsersCount">0</strong></div>
+      <div class="summary-card glass"><span class="muted">Pending files</span><strong id="adminPendingCount">0</strong></div>
+      <div class="summary-card glass"><span class="muted">Transactions</span><strong id="adminTxCount">0</strong></div>
+    </section>
+
+    <div class="page-grid admin-layout">
+      <section class="panel glass">
+        <div class="panel-head"><h2>KYC review queue</h2><span class="pill alert">Admin only</span></div>
+        <div id="adminKycQueue" class="file-list"></div>
+      </section>
+
+      <aside class="panel glass">
+        <div class="panel-head"><h2>Recent users</h2></div>
+        <div id="adminRecentUsers" class="file-list"></div>
+      </aside>
+    </div>
+
+    <section class="panel glass section">
+      <div class="panel-head"><h2>All users</h2></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>KYC</th><th>Wallet</th><th>Created</th></tr></thead>
+          <tbody id="adminUsersTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

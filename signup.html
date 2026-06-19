@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="auth-page">
+  <main class="auth-layout container narrow">
+    <a class="brand auth-brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+    <div class="auth-split">
+      <section class="auth-card glass wide-card">
+        <div class="section-heading compact">
+          <div class="eyebrow">Open account</div>
+          <h1>Create your account</h1>
+        </div>
+        <form id="signupForm" class="form-grid">
+          <label>First name<input type="text" id="firstName" placeholder="Alex" required /></label>
+          <label>Last name<input type="text" id="lastName" placeholder="Morgan" required /></label>
+          <label class="full">Email<input type="email" id="signupEmail" placeholder="you@example.com" required /></label>
+          <label>Password
+            <div class="password-wrap">
+              <input type="password" id="signupPassword" placeholder="Create a strong password" required />
+              <button type="button" class="text-btn" data-toggle-password="signupPassword">Show</button>
+            </div>
+          </label>
+          <label>Country<select id="country"><option>United States</option><option>United Kingdom</option><option>Germany</option><option>Singapore</option></select></label>
+          <label>Phone number<input type="tel" id="phoneNumber" placeholder="+1 555 123 4567" /></label>
+          <label>Referral code<input type="text" id="referralCode" placeholder="Optional" /></label>
+          <div class="full password-strength">
+            <div class="between"><span class="muted">Password strength</span><span id="strengthLabel" class="inline-stat">Too weak</span></div>
+            <div class="strength-bar"><div id="strengthFill" class="strength-fill"></div></div>
+          </div>
+          <label class="full checkbox-row"><input type="checkbox" required /> I agree to the terms and privacy policy</label>
+          <button class="btn btn-primary full" type="submit">Create account</button>
+        </form>
+        <p class="muted center">Already registered? <a href="login.html">Log in</a></p>
+      </section>
+
+      <aside class="auth-aside glass">
+        <div class="eyebrow">Account setup</div>
+        <h3>Next steps after signup</h3>
+        <div class="faq-list">
+          <div class="notice">Complete KYC in 5 guided steps</div>
+          <div class="notice">Connect your wallet or continue with demo mode</div>
+          <div class="notice">Review your holdings and activity on the dashboard</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

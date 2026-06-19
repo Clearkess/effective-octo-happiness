@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="auth-page">
+  <main class="auth-layout container narrow">
+    <a class="brand auth-brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+    <div class="auth-split">
+      <section class="auth-card glass">
+        <div class="section-heading compact">
+          <div class="eyebrow">Welcome back</div>
+          <h1>Log in to your dashboard</h1>
+        </div>
+        <form id="loginForm" class="form-stack">
+          <label>Email<input type="email" id="loginEmail" placeholder="you@example.com" required /></label>
+          <label>Password
+            <div class="password-wrap">
+              <input type="password" id="loginPassword" placeholder="••••••••" required />
+              <button type="button" class="text-btn" data-toggle-password="loginPassword">Show</button>
+            </div>
+          </label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Remember this device</label>
+          <button class="btn btn-primary" type="submit">Log in</button>
+        </form>
+        <div class="between alt-actions">
+          <button class="btn btn-secondary" id="walletConnectBtn" type="button">Connect wallet</button>
+          <button class="text-link" id="forgotPasswordBtn" type="button">Forgot password</button>
+        </div>
+        <p class="muted center">Don’t have an account? <a href="signup.html">Create one</a></p>
+        <div id="walletStatus" class="status-box">Wallet not connected</div>
+      </section>
+
+      <aside class="auth-aside glass">
+        <div class="eyebrow">Demo benefits</div>
+        <h3>What’s included</h3>
+        <div class="faq-list">
+          <div class="notice">Auth persistence with database-backed sessions</div>
+          <div class="notice">Wallet-connect state updates</div>
+          <div class="notice">Protected routes for dashboard pages</div>
+          <div class="notice">KYC upload flow with admin review tools</div>
+        </div>
+        <div class="notice">
+          <strong>Demo admin access</strong><br />
+          <span class="soft">Email:</span> admin@blockharbor.local<br />
+          <span class="soft">Password:</span> Admin123!
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="forgotPasswordModal" class="modal-overlay">
+    <div class="modal-card glass">
+      <div class="between"><h3>Password reset</h3><button class="icon-btn" data-close-modal>&times;</button></div>
+      <p class="muted">This demo simulates sending a password reset email.</p>
+      <form id="forgotForm" class="form-stack">
+        <label>Email<input type="email" placeholder="you@example.com" required /></label>
+        <button class="btn btn-primary" type="submit">Send reset link</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

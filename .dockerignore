@@ -1,0 +1,7 @@
+backend/__pycache__
+backend/*.pyc
+backend/*.db
+backend/server.log
+backend/server-*.log
+backend/uploads
+.git

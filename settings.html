@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Preferences</div>
+      <h1>Account settings</h1>
+      <p class="lead small">Profile and notification settings stored in local demo state.</p>
+    </section>
+
+    <div class="page-grid">
+      <section class="panel glass">
+        <div class="panel-head"><h2>Preferences</h2><span class="pill">Demo persisted</span></div>
+        <form id="settingsForm" class="form-stack">
+          <label>Risk profile
+            <select id="riskProfile">
+              <option>Conservative</option>
+              <option>Balanced</option>
+              <option>Growth</option>
+              <option>Aggressive</option>
+            </select>
+          </label>
+          <label class="checkbox-row"><input id="prefEmailAlerts" type="checkbox" /> Email alerts</label>
+          <label class="checkbox-row"><input id="prefProductUpdates" type="checkbox" /> Product updates</label>
+          <label class="checkbox-row"><input id="prefTwoFactor" type="checkbox" /> Enable 2FA requirement</label>
+          <button class="btn btn-primary" type="submit">Save settings</button>
+        </form>
+      </section>
+
+      <aside class="panel glass">
+        <div class="panel-head"><h2>Profile</h2></div>
+        <div class="faq-list">
+          <div class="notice"><strong data-user-fullname>Alex Morgan</strong><br><span data-user-email>demo@blockharbor.app</span></div>
+          <div class="notice">Use this page to wire real user profile, notification, and security APIs later.</div>
+          <div class="notice">Add password reset, API key management, and verified device history in production.</div>
+        </div>
+      </aside>
+    </div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

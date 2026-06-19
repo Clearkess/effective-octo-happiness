@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KYC verification — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <a class="btn btn-ghost admin-only hidden" href="admin.html">Admin</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Compliance flow</div>
+      <h1>KYC verification</h1>
+      <p class="lead small">Upload identity documents and move them into the admin review queue.</p>
+      <div class="progress-rail"><div id="kycProgressFill" class="progress-fill"></div></div>
+      <div id="kycCompletionLabel" class="inline-stat">Step 1 of 5</div>
+      <div id="kycStatusNote" class="notice hidden"></div>
+    </section>
+
+    <div class="kyc-layout">
+      <aside class="kyc-steps glass">
+        <button class="step-item active" data-step="0"><span>1</span> Personal details</button>
+        <button class="step-item" data-step="1"><span>2</span> Identity document</button>
+        <button class="step-item" data-step="2"><span>3</span> Proof of address</button>
+        <button class="step-item" data-step="3"><span>4</span> Selfie check</button>
+        <button class="step-item" data-step="4"><span>5</span> Final review</button>
+      </aside>
+
+      <section class="kyc-panel glass">
+        <div class="kyc-screen active" data-screen="0">
+          <h2>Personal details</h2>
+          <div class="form-grid">
+            <label>Full name<input type="text" placeholder="Alex Morgan" /></label>
+            <label>Date of birth<input type="date" /></label>
+            <label class="full">Residential address<input type="text" placeholder="Street, city, postal code" /></label>
+            <label>Country of residence<select><option>United States</option><option>United Kingdom</option><option>Germany</option></select></label>
+            <label>Occupation<input type="text" placeholder="Product manager" /></label>
+          </div>
+        </div>
+
+        <div class="kyc-screen" data-screen="1">
+          <h2>Identity document</h2>
+          <div class="upload-grid">
+            <div class="upload-box"><h3>Government ID</h3><p>Upload passport, driver’s license, or national ID.</p><input id="kycIdentityFile" type="file" /><button class="btn btn-primary btn-sm" type="button" data-upload-target="kycIdentityFile" data-step-key="identity" data-document-type="Government ID">Upload file</button></div>
+            <div class="upload-box"><h3>Optional reverse side</h3><p>If your document has a back side, upload it here.</p><input id="kycIdentityBackFile" type="file" /><button class="btn btn-secondary btn-sm" type="button" data-upload-target="kycIdentityBackFile" data-step-key="identity" data-document-type="Government ID Back">Upload file</button></div>
+          </div>
+        </div>
+
+        <div class="kyc-screen" data-screen="2">
+          <h2>Proof of address</h2>
+          <div class="upload-box">
+            <p>Upload a utility bill, bank statement, or other approved document issued within the last 90 days.</p>
+            <input id="kycAddressFile" type="file" />
+            <button class="btn btn-primary btn-sm" type="button" data-upload-target="kycAddressFile" data-step-key="address" data-document-type="Proof of Address">Upload file</button>
+          </div>
+        </div>
+
+        <div class="kyc-screen" data-screen="3">
+          <h2>Selfie check</h2>
+          <div class="upload-box">
+            <p>Upload a current selfie or a holding-ID image for liveness review.</p>
+            <input id="kycSelfieFile" type="file" />
+            <button class="btn btn-primary btn-sm" type="button" data-upload-target="kycSelfieFile" data-step-key="selfie" data-document-type="Selfie Check">Upload file</button>
+          </div>
+        </div>
+
+        <div class="kyc-screen" data-screen="4">
+          <h2>Review and submit</h2>
+          <div class="review-card">
+            <p>Profile details entered</p>
+            <p>Identity and address uploads ready</p>
+            <p>Selfie check ready</p>
+            <div class="status-pill pending">Final review will send documents to the admin queue</div>
+          </div>
+          <div class="section">
+            <h3>Uploaded files</h3>
+            <div id="kycFileList" class="file-list"></div>
+          </div>
+        </div>
+
+        <div class="kyc-actions">
+          <button class="btn btn-secondary" id="prevStepBtn" type="button">Back</button>
+          <button class="btn btn-primary" id="nextStepBtn" type="button">Continue</button>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

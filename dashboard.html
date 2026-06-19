@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="dashboard-shell">
+    <aside class="sidebar glass">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor</a>
+      <div class="user-chip">
+        <div class="avatar">AM</div>
+        <div>
+          <strong data-user-fullname>Alex Morgan</strong>
+          <div class="muted" data-user-email>demo@blockharbor.app</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="active" href="dashboard.html">Overview</a>
+        <a href="kyc.html">Verification</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="deposit.html">Deposit</a>
+        <a href="withdraw.html">Withdraw</a>
+        <a href="settings.html">Settings</a>
+        <a class="admin-only hidden" href="admin.html">Admin Console</a>
+      </nav>
+      <div class="wallet-box">
+        <div class="between"><div class="muted">Wallet</div><div id="walletBadge" class="pill">Not connected</div></div>
+        <button class="btn btn-primary btn-block" id="walletConnectBtn" type="button">Connect MetaMask</button>
+        <div id="walletStatus" class="status-box">Wallet not connected</div>
+      </div>
+      <div class="section">
+        <button class="btn btn-secondary btn-block theme-toggle" type="button">Light mode</button>
+        <button class="btn btn-ghost btn-block" data-logout type="button">Logout</button>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-topbar">
+        <div>
+          <div class="eyebrow">Portfolio overview</div>
+          <h1>Good morning, <span data-user-firstname>Alex</span></h1>
+          <div id="portfolioInline" class="inline-stat">4 tracked assets</div>
+        </div>
+        <div class="topbar-actions panel-actions">
+          <button class="btn btn-secondary" data-quick-link="deposit.html">Deposit</button>
+          <button class="btn btn-primary" data-quick-link="withdraw.html">Withdraw</button>
+        </div>
+      </header>
+
+      <section class="dashboard-grid">
+        <div class="panel glass highlight"><span>Total portfolio balance</span><strong id="totalBalance">$128,440.92</strong><small class="up">+$7,744 this month</small></div>
+        <div class="panel glass"><span>Available cash</span><strong id="availableCash">$19,200.00</strong><small>Ready for transfer</small></div>
+        <div class="panel glass"><span>Verification status</span><strong id="kycStatus">In review</strong><small id="kycDetail">2 of 5 steps complete</small></div>
+      </section>
+
+      <section class="dashboard-columns">
+        <div class="panel glass large">
+          <div class="panel-head"><h2>Holdings</h2><span class="muted">Live demo data</span></div>
+          <table class="holdings-table">
+            <thead><tr><th>Asset</th><th>Allocation</th><th>Price</th><th>24h</th></tr></thead>
+            <tbody id="holdingsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="stack-col">
+          <div class="panel glass">
+            <div class="panel-head"><h2>Allocation</h2><span class="muted">Demo SVG chart</span></div>
+            <div id="allocationChart"></div>
+          </div>
+          <div class="panel glass">
+            <div class="panel-head"><h2>KYC review note</h2></div>
+            <div id="kycReviewerPanel" class="empty-state">No reviewer note yet.</div>
+          </div>
+          <div id="walletArea" class="panel glass">
+            <div class="panel-head"><h2>Quick actions</h2></div>
+            <div class="quick-grid">
+              <button class="btn btn-secondary" data-quick-link="transactions.html" type="button">History</button>
+              <button class="btn btn-secondary" data-quick-link="settings.html" type="button">Preferences</button>
+              <button class="btn btn-primary" id="walletConnectBtnSecondary" type="button">Connect wallet</button>
+              <button class="btn btn-primary" data-quick-link="kyc.html" type="button">Finish KYC</button>
+            </div>
+          </div>
+          <div class="panel glass" id="activityFeed">
+            <div class="panel-head"><h2>Recent activity</h2></div>
+            <ul class="activity-list" id="activityList"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

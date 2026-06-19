@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Withdraw — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Funding</div>
+      <h1>Withdraw assets</h1>
+      <p class="lead small">Frontend-only withdrawal form with transaction logging in demo state.</p>
+    </section>
+
+    <div class="page-grid">
+      <section class="panel glass">
+        <div class="panel-head"><h2>Withdrawal request</h2><span class="pill alert">Pending review</span></div>
+        <form id="withdrawForm" class="form-stack">
+          <label>Asset<select id="withdrawAsset"><option>USDT</option><option>BTC</option><option>ETH</option></select></label>
+          <label>Network<select id="withdrawNetwork"><option>ERC-20</option><option>TRC-20</option><option>BTC</option></select></label>
+          <label>Amount<input id="withdrawAmount" type="number" min="0" step="0.0001" placeholder="0.00" required /></label>
+          <label>Destination wallet<input id="withdrawAddress" type="text" placeholder="Paste destination address" required /></label>
+          <button class="btn btn-primary" type="submit">Submit withdrawal</button>
+        </form>
+      </section>
+
+      <aside class="panel glass">
+        <div class="panel-head"><h2>Before you send</h2></div>
+        <div class="faq-list">
+          <div class="notice">Add fee preview and available-balance checks</div>
+          <div class="notice">Require 2FA for production withdrawals</div>
+          <div class="notice">Persist approved destinations and audit logs</div>
+        </div>
+      </aside>
+    </div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

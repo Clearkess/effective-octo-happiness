@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: blockharbor
+      POSTGRES_USER: blockharbor
+      POSTGRES_PASSWORD: blockharbor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    depends_on:
+      - db
+    env_file:
+      - .env.example
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      PORT: 8000
+      DATABASE_URL: postgresql://blockharbor:blockharbor@db:5432/blockharbor
+      UPLOAD_ROOT: /app/data/uploads/kyc
+    ports:
+      - "8000:8000"
+    volumes:
+      - app_data:/app/data
+
+volumes:
+  postgres_data:
+  app_data:

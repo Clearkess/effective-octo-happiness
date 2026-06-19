@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deposit — BlockHarbor Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-protected="true">
+  <div class="container page-shell">
+    <header class="subpage-topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">◈</span>BlockHarbor Markets</a>
+      <div class="nav-actions">
+        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
+        <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn-secondary" data-logout type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="section-heading compact">
+      <div class="eyebrow">Funding</div>
+      <h1>Deposit assets</h1>
+      <p class="lead small">Demo deposit addresses and QR placeholders for future wallet/funding integration.</p>
+    </section>
+
+    <div class="page-grid">
+      <section class="panel glass">
+        <div class="panel-head"><h2>Bitcoin deposit</h2><span class="pill alert">Network: BTC</span></div>
+        <div class="qr-card">
+          <div class="qr-box" aria-hidden="true"></div>
+          <div class="address-row"><span class="address-code" id="btcAddress">bc1q-demo</span><button class="btn btn-secondary btn-sm" type="button" data-copy-address="BTC">Copy</button></div>
+          <div class="copy-note">Use this as a frontend placeholder only. Real addresses should come from your backend or custody provider.</div>
+        </div>
+      </section>
+
+      <aside class="panel glass">
+        <div class="panel-head"><h2>USDT deposit</h2><span class="pill">ERC-20</span></div>
+        <div class="qr-card">
+          <div class="qr-box" aria-hidden="true"></div>
+          <div class="address-row"><span class="address-code" id="usdtAddress">0x-demo</span><button class="btn btn-secondary btn-sm" type="button" data-copy-address="USDT">Copy</button></div>
+          <div class="copy-note">Add network switching, address generation, and confirmations when connecting a real backend.</div>
+        </div>
+      </aside>
+    </div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
