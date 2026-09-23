@@ -13,8 +13,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-BACKEND_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = BASE_DIR
 DEFAULT_SQLITE_PATH = BACKEND_DIR / "blockharbor.db"
 DEFAULT_UPLOAD_ROOT = BACKEND_DIR / "uploads" / "kyc"
 
@@ -338,6 +338,22 @@ def init_db() -> None:
     ensure_user_bootstrap(admin["id"], conn=conn)
     commit(conn)
     conn.close()
+
+
+_db_initialized = False
+
+
+def ensure_database_initialized() -> None:
+    global _db_initialized
+    if _db_initialized:
+        return
+    init_db()
+    _db_initialized = True
+
+
+@app.before_request
+def initialize_database_for_request():
+    ensure_database_initialized()
 
 
 def create_session(user_id: int) -> str:
@@ -913,5 +929,5 @@ def frontend(path: str):
 
 
 if __name__ == "__main__":
-    init_db()
+    ensure_database_initialized()
     app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
