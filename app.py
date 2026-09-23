@@ -27,8 +27,14 @@ PORT = int(os.getenv("PORT", "8000"))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "16"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@blockharbor.local")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin123!")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 APP_ENV = os.getenv("APP_ENV", "development")
+
+
+if APP_ENV == "production" and not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL must be set in production")
+if APP_ENV == "production" and not ADMIN_PASSWORD:
+    raise RuntimeError("ADMIN_PASSWORD must be set in production")
 
 if DB_BACKEND == "postgres":
     from psycopg import connect as pg_connect
@@ -302,6 +308,8 @@ def ensure_column(conn, table: str, column_name: str, definition: str) -> None:
 
 
 def init_db() -> None:
+    if APP_ENV == "production" and DB_BACKEND != "postgres":
+        raise RuntimeError("Production deployments require PostgreSQL via DATABASE_URL")
     UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
     conn = connect_db()
     if DB_BACKEND == "sqlite":
@@ -771,6 +779,8 @@ def list_kyc_files():
 @app.post("/api/kyc/files")
 @auth_required
 def upload_kyc_file():
+    if os.getenv("VERCEL") == "1" and not os.getenv("KYC_OBJECT_STORAGE_URL"):
+        return jsonify({"error": "KYC file storage is not configured for Vercel. Configure object storage before enabling document uploads."}), 503
     upload = request.files.get("file")
     step_key = (request.form.get("stepKey") or "general").strip()
     document_type = (request.form.get("documentType") or step_key).strip()
