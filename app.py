@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import secrets
 import sqlite3
+import threading
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
@@ -21,7 +22,12 @@ DEFAULT_UPLOAD_ROOT = BACKEND_DIR / "uploads" / "kyc"
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DB_BACKEND = "postgres" if DATABASE_URL.startswith(("postgres://", "postgresql://")) else "sqlite"
 SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(DEFAULT_SQLITE_PATH)))
-UPLOAD_ROOT = Path(os.getenv("UPLOAD_ROOT", str(DEFAULT_UPLOAD_ROOT)))
+
+# Vercel's deployment filesystem is read-only except for /tmp.
+# KYC uploads are intentionally blocked on Vercel unless object storage is configured.
+DEFAULT_VERCEL_UPLOAD_ROOT = Path("/tmp/blockharbor/kyc")
+DEFAULT_UPLOAD_PATH = DEFAULT_VERCEL_UPLOAD_ROOT if os.getenv("VERCEL") == "1" else DEFAULT_UPLOAD_ROOT
+UPLOAD_ROOT = Path(os.getenv("UPLOAD_ROOT", str(DEFAULT_UPLOAD_PATH)))
 SESSION_DAYS = int(os.getenv("SESSION_DAYS", "14"))
 PORT = int(os.getenv("PORT") or "8000")
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
@@ -29,6 +35,7 @@ MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "16"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@blockharbor.local")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 APP_ENV = os.getenv("APP_ENV", "development")
+
 
 if APP_ENV == "production" and not DATABASE_URL:
     raise RuntimeError("DATABASE_URL must be set in production")
@@ -50,6 +57,15 @@ DEFAULT_HOLDINGS = [
     {"symbol": "SOL", "name": "Solana", "pct": 16, "color": "#36d399", "price": 311, "change": -0.5},
     {"symbol": "USDC", "name": "USDC", "pct": 14, "color": "#ffd36f", "price": 1, "change": 0},
 ]
+
+
+# The HTML pages reference /assets/css/styles.css and /assets/js/app.js, but the
+# files live at the repo root (styles.css, app.js). Alias the asset paths so the
+# catch-all frontend route serves them instead of aborting with 404.
+ASSET_ALIASES = {
+    "assets/css/styles.css": "styles.css",
+    "assets/js/app.js": "app.js",
+}
 
 SQLITE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -242,7 +258,14 @@ def adapt_sql(sql: str) -> str:
 
 def connect_db():
     if DB_BACKEND == "postgres":
-        return pg_connect(DATABASE_URL, row_factory=dict_row)
+        # Neon connection strings normally already contain sslmode=require.
+        # Add it defensively when a manually-created URL omits it.
+        url = DATABASE_URL
+        if "sslmode=" not in url:
+            separator = "&" if "?" in url else "?"
+            url = f"{url}{separator}sslmode=require"
+        return pg_connect(url, row_factory=dict_row, connect_timeout=10)
+
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -287,6 +310,26 @@ def commit(conn=None) -> None:
     (conn or get_db()).commit()
 
 
+def safe_execute(sql: str, params: Iterable[Any] = (), conn=None) -> bool:
+    """Run a statement that may collide with a concurrent cold start.
+
+    Two serverless instances can boot at the same moment and both try to
+    create the admin user / bootstrap rows. The loser gets a duplicate-key
+    error, which aborts the surrounding transaction, so undo it and let the
+    caller re-read the row that the winner inserted.
+    """
+    target = conn or get_db()
+    try:
+        execute(sql, params, conn=target)
+        return True
+    except Exception:
+        try:
+            target.rollback()
+        except Exception:
+            pass
+        return False
+
+
 def ensure_column(conn, table: str, column_name: str, definition: str) -> None:
     if DB_BACKEND == "sqlite":
         existing = {row["name"] for row in query_all(f"PRAGMA table_info({table})", conn=conn)}
@@ -325,7 +368,8 @@ def init_db() -> None:
 
     admin = query_one("SELECT id FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
     if not admin:
-        execute(
+        # Another instance may have created it between the check and the insert.
+        if safe_execute(
             "INSERT INTO users (first_name, last_name, email, password_hash, country, phone, created_at, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 "Admin",
@@ -338,9 +382,12 @@ def init_db() -> None:
                 "admin",
             ),
             conn=conn,
-        )
-        commit(conn)
+        ):
+            commit(conn)
         admin = query_one("SELECT id FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
+
+    if not admin:
+        raise RuntimeError("Could not create or read the bootstrap admin user")
 
     ensure_user_bootstrap(admin["id"], conn=conn)
     commit(conn)
@@ -350,12 +397,18 @@ def init_db() -> None:
 _db_initialized = False
 
 
+_init_lock = threading.Lock()
+
+
 def ensure_database_initialized() -> None:
     global _db_initialized
     if _db_initialized:
         return
-    init_db()
-    _db_initialized = True
+    with _init_lock:
+        if _db_initialized:
+            return
+        init_db()
+        _db_initialized = True
 
 
 @app.before_request
@@ -460,21 +513,21 @@ def ensure_user_bootstrap(user_id: int, conn=None) -> None:
     target = conn or get_db()
 
     if not query_one("SELECT user_id FROM settings WHERE user_id = ?", (user_id,), conn=target):
-        execute(
+        safe_execute(
             "INSERT INTO settings (user_id, risk_profile, email_alerts, product_updates, two_factor) VALUES (?, ?, ?, ?, ?)",
             (user_id, "Balanced", True, True, False),
             conn=target,
         )
 
     if not query_one("SELECT user_id FROM kyc WHERE user_id = ?", (user_id,), conn=target):
-        execute(
+        safe_execute(
             "INSERT INTO kyc (user_id, current_step, submitted, status) VALUES (?, ?, ?, ?)",
             (user_id, 0, False, "draft"),
             conn=target,
         )
 
     if not query_one("SELECT user_id FROM wallets WHERE user_id = ?", (user_id,), conn=target):
-        execute(
+        safe_execute(
             "INSERT INTO wallets (user_id, address, updated_at) VALUES (?, ?, ?)",
             (user_id, None, iso_now()),
             conn=target,
@@ -570,373 +623,4 @@ def signup():
         return jsonify({"error": "An account with this email already exists"}), 409
 
     execute(
-        "INSERT INTO users (first_name, last_name, email, password_hash, country, phone, created_at, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (first, last, email, generate_password_hash(password), country, phone, iso_now(), "user"),
-    )
-    commit()
-    user = query_one("SELECT * FROM users WHERE email = ?", (email,))
-    ensure_user_bootstrap(user["id"])
-    record_transaction(user["id"], "Signup", "Account", "New account", "Onboarding started", "Completed")
-    token = create_session(user["id"])
-    return jsonify({"token": token, "user": serialize_user(user)})
-
-
-@app.post("/api/auth/login")
-def login():
-    payload = request.get_json(silent=True) or {}
-    email = (payload.get("email") or "").strip().lower()
-    password = payload.get("password") or ""
-    user = query_one("SELECT * FROM users WHERE email = ?", (email,))
-    if not user or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "Invalid email or password"}), 401
-    ensure_user_bootstrap(user["id"])
-    token = create_session(user["id"])
-    return jsonify({"token": token, "user": serialize_user(user)})
-
-
-@app.post("/api/auth/logout")
-@auth_required
-def logout():
-    execute("DELETE FROM sessions WHERE token = ?", (g.current_token,))
-    commit()
-    return jsonify({"ok": True})
-
-
-@app.get("/api/auth/me")
-@auth_required
-def me():
-    return jsonify({"user": serialize_user(g.current_user)})
-
-
-@app.get("/api/dashboard/overview")
-@auth_required
-def dashboard_overview():
-    user_id = g.current_user["id"]
-    ensure_user_bootstrap(user_id)
-    wallet = query_one("SELECT address FROM wallets WHERE user_id = ?", (user_id,))
-    kyc = query_one("SELECT current_step, submitted, status, reviewer_note FROM kyc WHERE user_id = ?", (user_id,))
-    tx_rows = query_all(
-        "SELECT type, asset, amount, value_text, status, created_at FROM transactions WHERE user_id = ? ORDER BY id DESC LIMIT 5",
-        (user_id,),
-    )
-    return jsonify(
-        {
-            "user": serialize_user(g.current_user),
-            "portfolio": {
-                "totalBalance": 128440.92,
-                "availableCash": 19200.00,
-                "holdings": DEFAULT_HOLDINGS,
-                "wallet": wallet["address"] if wallet else None,
-                "kycSubmitted": bool(kyc["submitted"]) if kyc else False,
-                "kycStep": int(kyc["current_step"]) if kyc else 0,
-                "kycStatus": kyc["status"] if kyc else "draft",
-                "kycReviewerNote": kyc["reviewer_note"] if kyc else None,
-            },
-            "activity": [
-                {"label": f"{row['type']}: {row['asset']} — {row['status']}", "time": row["created_at"]}
-                for row in tx_rows
-            ],
-        }
-    )
-
-
-@app.get("/api/transactions")
-@auth_required
-def transactions():
-    rows = query_all(
-        "SELECT type, asset, amount, value_text, status, created_at FROM transactions WHERE user_id = ? ORDER BY id DESC",
-        (g.current_user["id"],),
-    )
-    return jsonify(
-        {
-            "transactions": [
-                {
-                    "type": row["type"],
-                    "asset": row["asset"],
-                    "amount": row["amount"],
-                    "value": row["value_text"],
-                    "status": row["status"],
-                    "when": row["created_at"],
-                }
-                for row in rows
-            ]
-        }
-    )
-
-
-@app.get("/api/deposit-addresses")
-@auth_required
-def deposit_addresses():
-    rows = query_all(
-        "SELECT asset, network, address FROM deposit_addresses WHERE user_id = ? ORDER BY id ASC",
-        (g.current_user["id"],),
-    )
-    return jsonify({"addresses": [dict(row) for row in rows]})
-
-
-@app.post("/api/withdrawals")
-@auth_required
-def create_withdrawal():
-    payload = request.get_json(silent=True) or {}
-    asset = (payload.get("asset") or "USDT").strip() or "USDT"
-    network = (payload.get("network") or "ERC-20").strip() or "ERC-20"
-    amount = (payload.get("amount") or "").strip()
-    address = (payload.get("address") or "").strip()
-    if not amount or not address:
-        return jsonify({"error": "Amount and destination address are required"}), 400
-    record_transaction(g.current_user["id"], "Withdraw", asset, f"{amount} {asset}", f"To {network}", "Pending")
-    return jsonify({"ok": True})
-
-
-@app.get("/api/settings")
-@auth_required
-def get_settings():
-    row = query_one(
-        "SELECT risk_profile, email_alerts, product_updates, two_factor FROM settings WHERE user_id = ?",
-        (g.current_user["id"],),
-    )
-    return jsonify(
-        {
-            "settings": {
-                "riskProfile": row["risk_profile"],
-                "emailAlerts": bool(row["email_alerts"]),
-                "productUpdates": bool(row["product_updates"]),
-                "twoFactor": bool(row["two_factor"]),
-            }
-        }
-    )
-
-
-@app.put("/api/settings")
-@auth_required
-def update_settings():
-    payload = request.get_json(silent=True) or {}
-    execute(
-        "UPDATE settings SET risk_profile = ?, email_alerts = ?, product_updates = ?, two_factor = ? WHERE user_id = ?",
-        (
-            payload.get("riskProfile") or "Balanced",
-            1 if payload.get("emailAlerts") else 0,
-            1 if payload.get("productUpdates") else 0,
-            1 if payload.get("twoFactor") else 0,
-            g.current_user["id"],
-        ),
-    )
-    commit()
-    return jsonify({"ok": True})
-
-
-@app.get("/api/kyc")
-@auth_required
-def get_kyc():
-    row = query_one(
-        "SELECT current_step, submitted, submitted_at, status, reviewer_note, reviewed_at FROM kyc WHERE user_id = ?",
-        (g.current_user["id"],),
-    )
-    return jsonify(
-        {
-            "kyc": {
-                "currentStep": int(row["current_step"]),
-                "submitted": bool(row["submitted"]),
-                "submittedAt": row["submitted_at"],
-                "status": row["status"],
-                "reviewerNote": row["reviewer_note"],
-                "reviewedAt": row["reviewed_at"],
-            }
-        }
-    )
-
-
-@app.put("/api/kyc/draft")
-@auth_required
-def update_kyc_draft():
-    current_step = max(0, min(int((request.get_json(silent=True) or {}).get("currentStep", 0)), 4))
-    execute("UPDATE kyc SET current_step = ? WHERE user_id = ?", (current_step, g.current_user["id"]))
-    commit()
-    return jsonify({"ok": True})
-
-
-@app.post("/api/kyc/submit")
-@auth_required
-def submit_kyc():
-    execute(
-        "UPDATE kyc SET current_step = 4, submitted = ?, submitted_at = ?, status = 'submitted' WHERE user_id = ?",
-        (1, iso_now(), g.current_user["id"]),
-    )
-    commit()
-    record_transaction(g.current_user["id"], "KYC", "Verification package", "5 checklist items", "Submitted", "In review")
-    sync_kyc_status(g.current_user["id"])
-    return jsonify({"ok": True})
-
-
-@app.get("/api/kyc/files")
-@auth_required
-def list_kyc_files():
-    rows = query_all("SELECT * FROM kyc_files WHERE user_id = ? ORDER BY id DESC", (g.current_user["id"],))
-    return jsonify({"files": [serialize_kyc_file(row) for row in rows]})
-
-
-@app.post("/api/kyc/files")
-@auth_required
-def upload_kyc_file():
-    if os.getenv("VERCEL") == "1" and not os.getenv("KYC_OBJECT_STORAGE_URL"):
-        return jsonify({"error": "KYC file storage is not configured for Vercel. Configure object storage before enabling document uploads."}), 503
-    upload = request.files.get("file")
-    step_key = (request.form.get("stepKey") or "general").strip()
-    document_type = (request.form.get("documentType") or step_key).strip()
-    if not upload or not upload.filename:
-        return jsonify({"error": "No file selected"}), 400
-
-    safe_name = secure_filename(upload.filename)
-    if not safe_name:
-        return jsonify({"error": "Invalid filename"}), 400
-
-    user_id = g.current_user["id"]
-    created_at = iso_now()
-    user_dir = UPLOAD_ROOT / str(user_id)
-    user_dir.mkdir(parents=True, exist_ok=True)
-    stored_name = f"{secrets.token_hex(8)}_{safe_name}"
-    target = user_dir / stored_name
-    upload.save(target)
-    size_bytes = target.stat().st_size
-
-    execute(
-        "INSERT INTO kyc_files (user_id, step_key, document_type, original_name, stored_name, file_path, mime_type, size_bytes, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'uploaded', ?)",
-        (user_id, step_key, document_type, upload.filename, stored_name, str(target), upload.mimetype, size_bytes, created_at),
-    )
-    execute("UPDATE kyc SET status = 'uploaded' WHERE user_id = ? AND status = 'draft'", (user_id,))
-    commit()
-    record_transaction(user_id, "KYC Upload", document_type, upload.filename, "Document received", "Uploaded")
-    sync_kyc_status(user_id)
-    newest = query_one("SELECT * FROM kyc_files WHERE user_id = ? ORDER BY id DESC LIMIT 1", (user_id,))
-    return jsonify({"file": serialize_kyc_file(newest)})
-
-
-@app.get("/api/kyc/files/<int:file_id>/download")
-@auth_required
-def download_kyc_file(file_id: int):
-    row = fetch_kyc_file(file_id)
-    if not row:
-        abort(404)
-    if g.current_user["role"] != "admin" and row["user_id"] != g.current_user["id"]:
-        return jsonify({"error": "Forbidden"}), 403
-    return send_file(Path(row["file_path"]), as_attachment=True, download_name=row["original_name"])
-
-
-@app.post("/api/profile/wallet")
-@auth_required
-def save_wallet():
-    address = ((request.get_json(silent=True) or {}).get("address") or "").strip()
-    if not address:
-        return jsonify({"error": "Wallet address is required"}), 400
-    execute("UPDATE wallets SET address = ?, updated_at = ? WHERE user_id = ?", (address, iso_now(), g.current_user["id"]))
-    commit()
-    return jsonify({"ok": True})
-
-
-@app.get("/api/admin/overview")
-@admin_required
-def admin_overview():
-    stats = {
-        "users": query_one("SELECT COUNT(*) AS c FROM users")["c"],
-        "pendingFiles": query_one("SELECT COUNT(*) AS c FROM kyc_files WHERE status = 'uploaded'")["c"],
-        "submittedKyc": query_one("SELECT COUNT(*) AS c FROM kyc WHERE submitted = ?", (1,))["c"],
-        "transactions": query_one("SELECT COUNT(*) AS c FROM transactions")["c"],
-    }
-    recent_users = query_all("SELECT id, first_name, last_name, email, role, created_at FROM users ORDER BY id DESC LIMIT 6")
-    pending_files = query_all(
-        """
-        SELECT kyc_files.id, kyc_files.document_type, kyc_files.status, kyc_files.created_at,
-               users.first_name, users.last_name, users.email
-        FROM kyc_files
-        JOIN users ON users.id = kyc_files.user_id
-        WHERE kyc_files.status = 'uploaded'
-        ORDER BY kyc_files.id DESC
-        LIMIT 10
-        """
-    )
-    return jsonify({"stats": stats, "recentUsers": [dict(row) for row in recent_users], "pendingFiles": [dict(row) for row in pending_files]})
-
-
-@app.get("/api/admin/users")
-@admin_required
-def admin_users():
-    rows = query_all(
-        """
-        SELECT users.id, users.first_name, users.last_name, users.email, users.role, users.created_at,
-               COALESCE(kyc.status, 'draft') AS kyc_status,
-               COALESCE(wallets.address, '') AS wallet_address
-        FROM users
-        LEFT JOIN kyc ON kyc.user_id = users.id
-        LEFT JOIN wallets ON wallets.user_id = users.id
-        ORDER BY users.id DESC
-        """
-    )
-    return jsonify({"users": [dict(row) for row in rows]})
-
-
-@app.get("/api/admin/kyc/files")
-@admin_required
-def admin_kyc_files():
-    rows = query_all(
-        """
-        SELECT kyc_files.*, users.first_name, users.last_name, users.email
-        FROM kyc_files
-        JOIN users ON users.id = kyc_files.user_id
-        ORDER BY kyc_files.id DESC
-        """
-    )
-    files = []
-    for row in rows:
-        item = serialize_kyc_file(row)
-        item["userName"] = f"{row['first_name']} {row['last_name']}"
-        item["userEmail"] = row["email"]
-        item["downloadUrl"] = f"/api/kyc/files/{row['id']}/download"
-        files.append(item)
-    return jsonify({"files": files})
-
-
-@app.post("/api/admin/kyc/files/<int:file_id>/review")
-@admin_required
-def admin_review_kyc_file(file_id: int):
-    payload = request.get_json(silent=True) or {}
-    status = (payload.get("status") or "").strip().lower()
-    note = (payload.get("reviewerNote") or "").strip()
-    if status not in {"approved", "rejected"}:
-        return jsonify({"error": "Review status must be approved or rejected"}), 400
-
-    row = fetch_kyc_file(file_id)
-    if not row:
-        return jsonify({"error": "File not found"}), 404
-
-    reviewed_at = iso_now()
-    execute("UPDATE kyc_files SET status = ?, reviewer_note = ?, reviewed_at = ? WHERE id = ?", (status, note, reviewed_at, file_id))
-    execute(
-        "UPDATE kyc SET reviewer_note = ?, reviewed_at = ?, status = ? WHERE user_id = ?",
-        (note, reviewed_at, "needs_attention" if status == "rejected" else "submitted", row["user_id"]),
-    )
-    commit()
-    record_transaction(row["user_id"], "KYC Review", row["document_type"], row["original_name"], note or "Reviewed", status.title())
-    sync_kyc_status(row["user_id"])
-    return jsonify({"ok": True})
-
-
-@app.route("/", defaults={"path": "index.html"})
-@app.route("/<path:path>")
-def frontend(path: str):
-    if path.startswith("api/"):
-        abort(404)
-    candidate = BASE_DIR / path
-    if candidate.is_file():
-        return send_from_directory(BASE_DIR, path)
-    if path in {"", "/"}:
-        return send_from_directory(BASE_DIR, "index.html")
-    if "." not in path:
-        fallback = f"{path}.html"
-        if (BASE_DIR / fallback).is_file():
-            return send_from_directory(BASE_DIR, fallback)
-    abort(404)
-
-
-if __name__ == "__main__":
-    ensure_database_initialized()
-    app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
+        "INSERT INTO users (first_name, last_name, email, password_hash, country, phone, created_at, role) VALUES (
