@@ -23,7 +23,7 @@ DB_BACKEND = "postgres" if DATABASE_URL.startswith(("postgres://", "postgresql:/
 SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(DEFAULT_SQLITE_PATH)))
 UPLOAD_ROOT = Path(os.getenv("UPLOAD_ROOT", str(DEFAULT_UPLOAD_ROOT)))
 SESSION_DAYS = int(os.getenv("SESSION_DAYS", "14"))
-PORT = int(os.getenv("PORT", "8000"))
+PORT = int(os.getenv("PORT") or "8000")
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "16"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@blockharbor.local")
