@@ -31,7 +31,7 @@ KYC document uploads require persistent object storage. The repository intention
 3. Add the environment variables above.
 4. Deploy.
 5. Open `/api/health` and confirm the database reports healthy.
-6. Test signup/login, dashboard, wallet linking, and the Sepolia-only demo flow.
+6. Test signup, login, dashboard and wallet linking on a testnet before using mainnet.
 7. Configure persistent KYC object storage before accepting document uploads.
 
 The app remains non-custodial for crypto activity: wallet transactions are signed by the user's browser wallet and the application does not receive private keys or seed phrases.

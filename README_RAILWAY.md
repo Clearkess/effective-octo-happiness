@@ -21,7 +21,7 @@ This package is prepared for a public Railway deployment using the existing root
 ## Important production notes
 - Change `ADMIN_EMAIL` and `ADMIN_PASSWORD` before first public deploy.
 - The app stores uploaded KYC files on the filesystem, so a persistent volume is strongly recommended.
-- The current app is a demo/prototype and should be security-reviewed before handling real user funds or real KYC data.
+- This app has not had a security review. Complete one before handling real user funds or real KYC data.
 
 ## Expected app behavior
 - Railway injects `PORT`; the app already binds to `PORT` through Gunicorn config.

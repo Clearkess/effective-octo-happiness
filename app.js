@@ -178,8 +178,8 @@ function syncAdminVisibility() {
 function updateUserUI() {
   if (!appState.user) return;
   $$('[data-user-firstname]').forEach(el => el.textContent = appState.user.firstName || 'Trader');
-  $$('[data-user-fullname]').forEach(el => el.textContent = `${appState.user.firstName || 'Alex'} ${appState.user.lastName || 'Morgan'}`);
-  $$('[data-user-email]').forEach(el => el.textContent = appState.user.email || 'demo@blockharbor.app');
+  $$('[data-user-fullname]').forEach(el => el.textContent = `${appState.user.firstName || ''} ${appState.user.lastName || ''}`);
+  $$('[data-user-email]').forEach(el => el.textContent = appState.user.email || '');
   $$('.avatar').forEach(el => {
     const first = (appState.user.firstName || 'A')[0];
     const last = (appState.user.lastName || 'M')[0];
@@ -227,12 +227,6 @@ function setupAuthForms() {
     } catch (error) {
       showToast(error.message, 'error');
     }
-  });
-
-  $('#newsletterForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    showToast('Newsletter signup captured in UI demo', 'success');
-    e.target.reset();
   });
 
   $('#forgotPasswordBtn')?.addEventListener('click', () => $('#forgotPasswordModal')?.classList.add('open'));
@@ -380,8 +374,7 @@ function renderDashboard() {
   $('#kycStatus') && ($('#kycStatus').textContent = appState.portfolio.kycStatus || (appState.portfolio.kycSubmitted ? 'submitted' : 'in review'));
   $('#kycDetail') && ($('#kycDetail').textContent = appState.portfolio.kycSubmitted ? 'Final package awaiting review' : `${Math.max(1, appState.portfolio.kycStep + 1)} of 5 steps complete`);
   $('#portfolioInline') && ($('#portfolioInline').textContent = `${appState.portfolio.holdings.length} tracked assets`);
-  // Label the figures from the data itself: seeded demo values or the user's real positions.
-  $('#holdingsNote') && ($('#holdingsNote').textContent = appState.portfolio.isDemoData === false ? 'Your positions' : 'Live demo data');
+  $('#holdingsNote') && ($('#holdingsNote').textContent = 'Your positions');
   $('#balanceNote') && ($('#balanceNote').textContent = typeof appState.portfolio.investedValue === 'number' ? `${currency(appState.portfolio.investedValue)} invested` : 'Portfolio value');
   const reviewerPanel = $('#kycReviewerPanel');
   if (reviewerPanel) reviewerPanel.textContent = appState.portfolio.kycReviewerNote || 'No reviewer note yet.';

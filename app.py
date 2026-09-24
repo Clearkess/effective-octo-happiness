@@ -73,17 +73,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 app.config["JSON_SORT_KEYS"] = False
 
-# Starting positions written into the database the first time a user is seen.
-# These are seed values, not account data: `portfolio.is_demo` stays TRUE and
-# the API reports it so the UI can label the figures honestly. Replace them
-# with real positions via PUT /api/admin/users/<id>/portfolio.
-SEED_HOLDINGS = [
-    {"symbol": "BTC", "name": "Bitcoin", "quantity": 0.44, "price": 104821, "change": 2.1, "color": "#46a0ff"},
-    {"symbol": "ETH", "name": "Ethereum", "quantity": 6.0, "price": 5148, "change": 1.4, "color": "#7c4dff"},
-    {"symbol": "SOL", "name": "Solana", "quantity": 56.0, "price": 311, "change": -0.5, "color": "#36d399"},
-    {"symbol": "USDC", "name": "USDC", "quantity": 15200.0, "price": 1, "change": 0, "color": "#ffd36f"},
-]
-SEED_CASH_BALANCE = 19200.00
+# No starting positions are written. A new account begins empty; real positions
+# are entered through PUT /api/admin/users/<id>/portfolio.
 
 
 # The HTML pages reference /assets/css/styles.css and /assets/js/app.js, but the
@@ -186,7 +177,6 @@ CREATE TABLE IF NOT EXISTS kyc_files (
 CREATE TABLE IF NOT EXISTS portfolio (
     user_id INTEGER PRIMARY KEY,
     cash_balance REAL NOT NULL DEFAULT 0,
-    is_demo INTEGER NOT NULL DEFAULT 1,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -299,7 +289,6 @@ POSTGRES_SCHEMA = [
     CREATE TABLE IF NOT EXISTS portfolio (
         user_id BIGINT PRIMARY KEY REFERENCES users(id),
         cash_balance DOUBLE PRECISION NOT NULL DEFAULT 0,
-        is_demo BOOLEAN NOT NULL DEFAULT TRUE,
         updated_at TEXT NOT NULL
     )
     """,
@@ -631,44 +620,15 @@ def ensure_user_bootstrap(user_id: int, conn=None) -> None:
             conn=target,
         )
 
-    if not query_one("SELECT id FROM deposit_addresses WHERE user_id = ? LIMIT 1", (user_id,), conn=target):
-        executemany(
-            "INSERT INTO deposit_addresses (user_id, asset, network, address) VALUES (?, ?, ?, ?)",
-            [
-                (user_id, "BTC", "BTC", f"bc1qblockharbor{int(user_id):04d}btc89f2"),
-                (user_id, "USDT", "ERC-20", f"0xB10cHarbor{int(user_id):04d}00000000000000000000"),
-            ],
-            conn=target,
-        )
 
     if not query_one("SELECT user_id FROM portfolio WHERE user_id = ?", (user_id,), conn=target):
         safe_execute(
-            "INSERT INTO portfolio (user_id, cash_balance, is_demo, updated_at) VALUES (?, ?, ?, ?)",
-            (user_id, SEED_CASH_BALANCE, True, iso_now()),
+            "INSERT INTO portfolio (user_id, cash_balance, updated_at) VALUES (?, ?, ?)",
+            (user_id, 0.0, iso_now()),
             conn=target,
         )
 
-    if not query_one("SELECT id FROM holdings WHERE user_id = ? LIMIT 1", (user_id,), conn=target):
-        executemany(
-            "INSERT INTO holdings (user_id, symbol, name, quantity, price, change_24h, color, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                (user_id, h["symbol"], h["name"], h["quantity"], h["price"], h["change"], h["color"], iso_now())
-                for h in SEED_HOLDINGS
-            ],
-            conn=target,
-        )
 
-    if not query_one("SELECT id FROM transactions WHERE user_id = ? LIMIT 1", (user_id,), conn=target):
-        executemany(
-            "INSERT INTO transactions (user_id, type, asset, amount, value_text, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [
-                (user_id, "Buy", "BTC", "0.1800 BTC", "$18,912", "Completed", iso_now()),
-                (user_id, "Deposit", "USDT", "4,500 USDT", "$4,500", "Pending", iso_now()),
-                (user_id, "KYC", "Address proof", "Document upload", "Verification", "In review", iso_now()),
-                (user_id, "Buy", "ETH", "2.3000 ETH", "$11,840", "Completed", iso_now()),
-            ],
-            conn=target,
-        )
 
     commit(target)
 
@@ -729,15 +689,13 @@ def load_portfolio(user_id: int) -> dict[str, Any]:
 
     totalBalance = sum(quantity x price) + cash, and each holding's allocation
     percentage is derived from those values rather than stored by hand.
-    `isDemoData` is True while the rows are still the seeded starting values.
     """
-    account = query_one("SELECT cash_balance, is_demo FROM portfolio WHERE user_id = ?", (user_id,))
+    account = query_one("SELECT cash_balance FROM portfolio WHERE user_id = ?", (user_id,))
     rows = query_all(
         "SELECT symbol, name, quantity, price, change_24h, color FROM holdings WHERE user_id = ? ORDER BY id ASC",
         (user_id,),
     )
     cash = float(account["cash_balance"]) if account else 0.0
-    is_demo = bool(account["is_demo"]) if account else True
 
     holdings = []
     invested = 0.0
@@ -763,7 +721,6 @@ def load_portfolio(user_id: int) -> dict[str, Any]:
         "availableCash": round(cash, 2),
         "investedValue": round(invested, 2),
         "holdings": holdings,
-        "isDemoData": is_demo,
     }
 
 
@@ -1161,12 +1118,9 @@ def admin_overview():
 @app.put("/api/admin/users/<int:user_id>/portfolio")
 @admin_required
 def admin_update_portfolio(user_id: int):
-    """Replace the seeded demo positions with real account data.
+    """Set a user's cash balance and holdings.
 
-    Send {"cashBalance": 0, "isDemo": false, "holdings": [{"symbol": "BTC",
-    "quantity": 0.5, "price": 104821}]}. Symbols already present are updated;
-    new symbols need a price. Setting isDemo false stops the UI labelling the
-    figures as demo.
+    Send {"cashBalance": 0, "holdings": [{"symbol": "BTC",
     """
     if not query_one("SELECT id FROM users WHERE id = ?", (user_id,)):
         return jsonify({"error": "Unknown user"}), 404
@@ -1182,8 +1136,6 @@ def admin_update_portfolio(user_id: int):
             return jsonify({"error": "cashBalance must be a number"}), 400
         execute("UPDATE portfolio SET cash_balance = ?, updated_at = ? WHERE user_id = ?", (cash, iso_now(), user_id))
 
-    if "isDemo" in payload:
-        execute("UPDATE portfolio SET is_demo = ?, updated_at = ? WHERE user_id = ?", (bool(payload["isDemo"]), iso_now(), user_id))
 
     holdings = payload.get("holdings")
     if holdings is not None and not isinstance(holdings, list):
