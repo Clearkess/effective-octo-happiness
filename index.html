@@ -1,188 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='25' font-size='24'%3E%E2%97%88%3C/text%3E%3C/svg%3E" />
-  <title>BlockHarbor Markets — Crypto onboarding, verification and portfolio management</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css" />
-  <!-- Vercel Speed Insights -->
-  <script type="module">
-    import { injectSpeedInsights } from 'https://cdn.jsdelivr.net/npm/@vercel/speed-insights@1/dist/index.mjs';
-    injectSpeedInsights();
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlockHarborMarkets — Invest Successfully & Safely</title>
+<meta name="description" content="BlockHarborMarkets — crypto market tools, education and portfolio resources.">
+<style>
+:root{
+  --bg:#020817;--bg2:#06112a;--card:#07152f;--card2:#0a1937;
+  --text:#f7f7ff;--muted:#a8aec5;--line:rgba(145,160,210,.18);
+  --purple:#7c3cff;--purple2:#9b5cff;--orange:#ff9b3d;
+  --gradient:linear-gradient(100deg,#7738ff,#ff9b3d);
+  --shadow:0 18px 60px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:
+ radial-gradient(circle at 80% 12%,rgba(255,115,45,.20),transparent 24rem),
+ radial-gradient(circle at 30% 18%,rgba(103,46,255,.17),transparent 28rem),
+ var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+a{text-decoration:none;color:inherit}
+.container{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{height:72px;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(2,8,23,.78);backdrop-filter:blur(18px);position:sticky;top:0;z-index:20}
+.nav-inner{height:100%;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;white-space:nowrap}
+.logo-mark{width:27px;height:27px;border-radius:9px;background:conic-gradient(from 220deg,#6334ff,#a96bff,#ff9638,#6334ff);position:relative;box-shadow:0 0 22px rgba(124,60,255,.35)}
+.logo-mark:after{content:"";position:absolute;width:10px;height:10px;border:4px solid #07102a;border-left-color:transparent;border-bottom-color:transparent;transform:rotate(45deg);left:6px;top:6px;border-radius:3px}
+.logo span{background:linear-gradient(90deg,#fff 65%,#ff9c42);-webkit-background-clip:text;color:transparent}
+.navlinks{display:flex;gap:28px;color:#c5c9db;font-size:12px}
+.navlinks a:hover{color:white}
+.nav-actions{display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer}
+.btn-outline{background:transparent;color:#fff;border:1px solid #596078}
+.btn-primary{background:var(--gradient);box-shadow:0 10px 28px rgba(128,60,255,.24)}
+.btn-primary:hover{filter:brightness(1.08)}
+.hero{padding:78px 0 65px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:50px}
+.badge,.eyebrow{display:inline-flex;padding:7px 13px;border:1px solid rgba(255,151,71,.45);border-radius:999px;background:linear-gradient(90deg,rgba(108,54,255,.25),rgba(255,142,52,.2));font-size:11px;color:#ddd}
+h1{font-size:clamp(42px,5vw,66px);line-height:.98;letter-spacing:-3px;margin:20px 0}
+.gradient-text{background:linear-gradient(90deg,#8d48ff,#b55cff,#ff9b3d);-webkit-background-clip:text;color:transparent}
+.hero p{max-width:560px;color:#c3c7d7;font-size:15px}
+.hero-buttons{display:flex;gap:12px;margin:28px 0}
+.users{display:flex;align-items:center;gap:13px;color:#aeb5ca;font-size:11px}
+.avatars{display:flex}
+.avatar{width:32px;height:32px;border-radius:50%;border:2px solid #081128;margin-left:-6px;background:linear-gradient(145deg,#ddd,#6972a2)}
+.avatar:first-child{margin-left:0}
+.phone-wrap{position:relative;min-height:390px;display:grid;place-items:center}
+.glow{position:absolute;width:380px;height:300px;background:radial-gradient(circle,rgba(255,112,48,.35),rgba(111,45,255,.2),transparent 70%);filter:blur(25px)}
+.phone{position:relative;width:205px;height:380px;border:7px solid #1a2340;border-radius:34px;background:#07122c;box-shadow:0 25px 70px rgba(0,0,0,.6),0 0 35px rgba(124,60,255,.35);padding:28px 15px;transform:rotate(-4deg)}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:75px;height:17px;border-radius:20px;background:#111a33}
+.coin{position:absolute;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:25px;box-shadow:0 15px 35px rgba(0,0,0,.3)}
+.btc{right:-42px;top:82px;background:linear-gradient(145deg,#ffb14c,#f07820)}
+.eth{right:-65px;bottom:95px;background:linear-gradient(145deg,#9a74ff,#4530b8)}
+.sol{left:-50px;bottom:55px;background:linear-gradient(145deg,#7d5cff,#2b70dd)}
+.phone-title{display:flex;justify-content:space-between;font-size:10px;color:#aaa}
+.price{font-size:23px;font-weight:800;margin:12px 0}
+.chart{height:80px;margin:10px 0;background:linear-gradient(180deg,rgba(32,215,158,.12),transparent);clip-path:polygon(0 82%,12% 70%,25% 77%,38% 55%,49% 63%,63% 35%,74% 42%,87% 16%,100% 0,100% 100%,0 100%);border-bottom:2px solid #16d79f}
+.list{display:grid;gap:8px;margin-top:16px}.asset{display:flex;justify-content:space-between;align-items:center;padding:9px;border-radius:10px;background:#0c1935;font-size:9px}.green{color:#20d79e}
+.features{padding:20px 0 70px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:linear-gradient(145deg,rgba(9,24,53,.96),rgba(5,14,33,.94));border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
+.card.wide{grid-column:span 1}.icon{width:39px;height:39px;border-radius:12px;background:linear-gradient(145deg,#4d28d8,#9d50ff);display:grid;place-items:center;margin-bottom:14px;font-size:17px;box-shadow:0 8px 24px rgba(113,52,255,.25)}
+.card h3{margin:0 0 8px;font-size:14px}.card p{margin:0;color:#9fa7bf;font-size:11px}
+.feature-row2{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.section{padding:72px 0}.section-title{font-size:32px;line-height:1.05;margin:12px 0}.section-copy{color:#9fa7bf;font-size:13px;max-width:440px}
+.steps{display:grid;grid-template-columns:1.05fr 2fr;gap:50px;align-items:center}.step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.step{text-align:center}.step .icon{margin:0 auto 12px}.step h4{font-size:12px;margin:0 0 5px}.step p{font-size:10px;color:#8e97b0;margin:0}
+.platform{background:linear-gradient(145deg,#07142d,#071a38);border:1px solid var(--line);border-radius:16px;padding:38px;display:grid;grid-template-columns:1fr 2fr;gap:40px}.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.tool{border-bottom:1px solid var(--line);padding-bottom:14px}.tool h4{font-size:12px;margin:0 0 5px}.tool p{font-size:10px;color:#8f98b2;margin:0}
+.stats{margin-top:18px;border-radius:15px;padding:30px;background:linear-gradient(100deg,#6b32ef,#9b43bb,#ff9239);display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:20px;align-items:center;box-shadow:0 20px 55px rgba(122,55,220,.22)}.stats h2{margin:0;font-size:18px}.stat{border-left:1px solid rgba(255,255,255,.35);padding-left:25px}.stat strong{font-size:22px;display:block}.stat span{font-size:10px;opacity:.82}
+.about{display:grid;grid-template-columns:1fr 1fr;background:#07142d;border:1px solid var(--line);border-radius:16px;overflow:hidden}.about-art{min-height:280px;background:radial-gradient(circle at 50% 50%,rgba(127,57,255,.5),transparent 55%),#050e24;display:grid;place-items:center;font-size:90px}.about-copy{padding:42px}
+.faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px}.faq-list{display:grid;gap:8px}.faq-item{background:#07142d;border:1px solid var(--line);border-radius:10px;padding:15px 18px;font-size:12px;display:flex;justify-content:space-between}
+footer{border-top:1px solid var(--line);padding:50px 0 25px;background:#020a1c}.footer-grid{display:grid;grid-template-columns:1.5fr repeat(3,1fr) 1.3fr;gap:28px}.footer h4{font-size:11px;margin:0 0 13px}.footer a,.footer p{font-size:10px;color:#8992aa;display:block;margin:7px 0}.bottom{border-top:1px solid var(--line);margin-top:35px;padding-top:18px;color:#69738e;font-size:9px;display:flex;justify-content:space-between}
+@media(max-width:900px){.navlinks{display:none}.hero-grid,.steps,.platform,.about,.faq{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.feature-row2{grid-template-columns:1fr}.step-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr 1fr}.stat:first-of-type{border:0}.footer-grid{grid-template-columns:repeat(2,1fr)}.phone-wrap{min-height:330px}}
+@media(max-width:560px){.container{width:min(100% - 28px,1120px)}nav{height:64px}.nav-actions .btn-outline{display:none}.nav-actions .btn{padding:9px 13px;font-size:11px}.hero{padding-top:50px}h1{font-size:43px}.cards,.feature-row2,.tools,.stats{grid-template-columns:1fr}.stats .stat{border-left:0;border-top:1px solid rgba(255,255,255,.25);padding:15px 0 0}.footer-grid{grid-template-columns:1fr 1fr}.bottom{display:block}.bottom span{display:block;margin-top:8px}}
+
+.faq-item{display:block;padding:0}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;background:none;border:0;color:inherit;font:inherit;font-size:12px;text-align:left;padding:15px 18px;cursor:pointer}
+.faq-q:focus-visible{outline:2px solid var(--purple2);outline-offset:-2px;border-radius:10px}
+.faq-q b{transition:transform .18s ease}
+.faq-item.open .faq-q b{transform:rotate(45deg)}
+.faq-a{padding:0 18px 15px;font-size:11.5px;color:#9fa7bf;line-height:1.6}
+.faq-a p{margin:0}
+</style>
 </head>
 <body>
-  <div class="ticker-wrap">
-    <div class="ticker-inner container">
-      <div class="pill live">Market snapshot</div>
-      <div class="ticker-track" aria-label="market ticker">
-        <div class="ticker-item"><b>BTC</b><span data-price="btc">—</span><span data-change="btc" class="up">—</span></div>
-        <div class="ticker-item"><b>ETH</b><span data-price="eth">—</span><span data-change="eth" class="up">—</span></div>
-        <div class="ticker-item"><b>SOL</b><span data-price="sol">—</span><span data-change="sol" class="down">—</span></div>
-        <div class="ticker-item"><b>LINK</b><span data-price="link">—</span><span data-change="link" class="up">—</span></div>
-        <div class="ticker-item"><b>BTC</b><span data-price="btc">—</span><span data-change="btc" class="up">—</span></div>
-        <div class="ticker-item"><b>ETH</b><span data-price="eth">—</span><span data-change="eth" class="up">—</span></div>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="#"><i class="logo-mark"></i><span>BlockHarborMarkets</span></a>
+    <div class="navlinks">
+      <a href="#home">Home</a><a href="#how">How It Works</a><a href="#markets">Markets</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-actions"><a class="btn btn-outline" href="login.html">Login</a><a class="btn btn-primary" href="signup.html">Create Account</a></div>
+  </div>
+</nav>
+
+<main id="home">
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="badge">Your Trusted Crypto Investment Partner</span>
+      <h1>Learn how to invest<br><span class="gradient-text">successfully &amp; safely</span></h1>
+      <p>Join thousands of people who are building their financial future with BlockHarborMarkets. Get access to expert strategies, educational resources and powerful trading tools — all in one place.</p>
+      <div class="hero-buttons"><a class="btn btn-primary" href="signup.html">Create Account →</a><a class="btn btn-outline" href="login.html">Login</a></div>
+      <div class="users"><div class="avatars"><i class="avatar"></i><i class="avatar"></i><i class="avatar"></i><i class="avatar"></i></div><span>Join 12,450+ active users<br>around the world</span></div>
+    </div>
+    <div class="phone-wrap">
+      <div class="glow"></div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="phone-title"><span>Bitcoin</span><span>BTC</span></div>
+        <div class="price">$67,432.18 <small class="green">+2.45%</small></div>
+        <div class="chart"></div>
+        <div class="list">
+          <div class="asset"><span>🟠 Bitcoin</span><b>$67,432.18</b></div>
+          <div class="asset"><span>🟣 Ethereum</span><b>$3,248.26</b></div>
+          <div class="asset"><span>🔵 Solana</span><b>$157.32</b></div>
+        </div>
       </div>
+      <div class="coin btc">₿</div><div class="coin eth">◆</div><div class="coin sol">≋</div>
     </div>
   </div>
+</section>
 
-  <div class="site-shell">
-    <header class="topbar container">
-      <a class="brand" href="index.html"><span class="brand-mark">◈</span><span>BlockHarbor Markets</span></a>
-      <nav class="nav desktop-nav">
-        <a href="#features">Features</a>
-        <a href="#markets">Markets</a>
-        <a href="#faq">FAQ</a>
-        <a href="dashboard.html">Dashboard</a>
-      </nav>
-      <div class="nav-actions">
-        <button class="btn btn-ghost theme-toggle" type="button">Light mode</button>
-        <a class="btn btn-ghost" href="login.html">Log in</a>
-        <a class="btn btn-primary" href="signup.html">Create account</a>
-      </div>
-    </header>
-
-    <main>
-      <section class="hero container">
-        <div class="hero-copy">
-          <div class="eyebrow">Onboarding • Portfolio • Wallet</div>
-          <h1>Crypto onboarding, verification and portfolio management in one place.</h1>
-          <p class="lead">Create an account, complete identity verification, connect a wallet, and track your portfolio, transactions, deposits and withdrawals from a single dashboard.</p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="signup.html">Start onboarding</a>
-            <a class="btn btn-secondary" href="dashboard.html">Open dashboard</a>
-          </div>
-          <div class="hero-badges">
-            <span>5-step identity verification</span>
-            <span>MetaMask wallet connect</span>
-            <span>Portfolio, deposits &amp; history</span>
-          </div>
-          <div class="stats-inline section">
-            <div class="summary-card glass"><span class="muted">Markets</span><strong>BTC · ETH · SOL · LINK</strong></div>
-            <div class="summary-card glass"><span class="muted">Verification</span><strong>5-step KYC</strong></div>
-            <div class="summary-card glass"><span class="muted">Account security</span><strong>Hashed passwords &amp; isolated data</strong></div>
-          </div>
-        </div>
-        <div class="hero-card glass">
-          <div class="stat-grid">
-            <div class="stat-card">
-              <span>Portfolio tracking</span>
-              <strong>Multi-asset</strong>
-              <small>Value, allocation and history</small>
-            </div>
-            <div class="stat-card">
-              <span>Transactions</span>
-              <strong>Full history</strong>
-              <small>Deposits, buys and withdrawals</small>
-            </div>
-            <div class="stat-card wide">
-              <span>Market watch</span>
-              <div class="ticker-row">
-                <div><b>BTC</b><em data-price="btc">—</em></div>
-                <div><b>ETH</b><em data-price="eth">—</em></div>
-                <div><b>SOL</b><em data-price="sol">—</em></div>
-              </div>
-            </div>
-            <div class="stat-card wide">
-              <span>Getting started</span>
-              <div class="metric-row">
-                <div class="metric-pill">1. Create account</div>
-                <div class="metric-pill">2. Finish KYC</div>
-                <div class="metric-pill">3. Reach dashboard</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="features" class="container section">
-        <div class="section-heading">
-          <div class="eyebrow">Feature set</div>
-          <h2>Everything you need to open an account and manage your portfolio</h2>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card glass"><h3>Accounts and sign-in</h3><p>Create an account, sign in securely, and reset your password if you need to.</p></article>
-          <article class="feature-card glass"><h3>Identity verification</h3><p>Work through a five-step check covering your profile, ID document, proof of address, a selfie and a final review.</p></article>
-          <article class="feature-card glass"><h3>Wallet connection</h3><p>Connect a browser wallet such as MetaMask, or use your account without one.</p></article>
-          <article class="feature-card glass"><h3>Portfolio dashboard</h3><p>See your holdings, allocation, activity and quick actions in one place.</p></article>
-          <article class="feature-card glass"><h3>Transaction history</h3><p>Review deposits, buys and withdrawals together with your verification activity.</p></article>
-          <article class="feature-card glass"><h3>Deposits and withdrawals</h3><p>Copy your deposit address, and submit withdrawal requests from your dashboard.</p></article>
-        </div>
-      </section>
-
-      <section id="markets" class="container section">
-        <div class="section-heading">
-          <div class="eyebrow">Markets</div>
-          <h2>Market overview</h2>
-        </div>
-        <div class="market-grid">
-          <div class="market-card glass"><span>Bitcoin</span><strong data-price="btc">—</strong><small data-change="btc" class="up">—</small></div>
-          <div class="market-card glass"><span>Ethereum</span><strong data-price="eth">—</strong><small data-change="eth" class="up">—</small></div>
-          <div class="market-card glass"><span>Solana</span><strong data-price="sol">—</strong><small data-change="sol" class="down">—</small></div>
-          <div class="market-card glass"><span>Chainlink</span><strong data-price="link">—</strong><small data-change="link" class="up">—</small></div>
-        </div>
-      </section>
-
-      <section class="container section info-grid">
-        <div class="mini-card glass"><h3>Getting started</h3><p class="muted">Create an account, finish verification, then fund your account and track it from the dashboard.</p></div>
-        <div class="mini-card glass"><h3>Your account</h3><p class="muted">Your profile, wallet connection and preferences are saved to your account.</p></div>
-        <div class="mini-card glass"><h3>Activity history</h3><p class="muted">Every deposit, buy and withdrawal is recorded against your account.</p></div>
-        <div class="mini-card glass"><h3>Security</h3><p class="muted">Passwords are stored hashed, and every account's data is kept separate.</p></div>
-      </section>
-
-      <section class="container section cta-band glass">
-        <div>
-          <div class="eyebrow">Get started</div>
-          <h2>Create an account and reach your dashboard in minutes.</h2>
-        </div>
-        <div class="panel-actions">
-          <a class="btn btn-primary" href="signup.html">Open signup</a>
-          <a class="btn btn-secondary" href="transactions.html">See transactions</a>
-        </div>
-      </section>
-
-      <section id="faq" class="container section">
-        <div class="section-heading">
-          <div class="eyebrow">FAQ</div>
-          <h2>Common onboarding questions</h2>
-        </div>
-        <div class="faq-list">
-          <details class="faq-item glass" open><summary>How do I create an account</summary><p>Create an account, complete your profile details, and continue to the KYC screen.</p></details>
-          <details class="faq-item glass"><summary>How does identity verification work</summary><p>You work through five steps: your profile details, a photo of your ID, proof of address, a selfie, and a final review.</p></details>
-          <details class="faq-item glass"><summary>How do deposits and withdrawals appear</summary><p>Your dashboard shows every deposit, buy and withdrawal, and gives you your deposit address and a withdrawal form.</p></details>
-          <details class="faq-item glass"><summary>Can I connect a wallet</summary><p>Yes. You can connect a browser wallet such as MetaMask, and you can use your account without one if you prefer.</p></details>
-        </div>
-      </section>
-
-    </main>
-
-    <footer class="container footer">
-      <div>
-        <strong>BlockHarbor Markets</strong>
-        <p>Crypto onboarding, verification and portfolio management.</p>
-      </div>
-      <div class="footer-links">
-        <a href="login.html">Login</a>
-        <a href="signup.html">Signup</a>
-        <a href="kyc.html">KYC</a>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="settings.html">Settings</a>
-      </div>
-    </footer>
+<section class="features" id="markets">
+<div class="container">
+  <div class="cards">
+    <div class="card"><div class="icon">◈</div><h3>Secured</h3><p>Your funds and data are protected with industry-leading security measures.</p></div>
+    <div class="card"><div class="icon">⌁</div><h3>Leverage</h3><p>Increase your trading potential with flexible leverage options (up to 1:100).</p></div>
+    <div class="card"><div class="icon">◎</div><h3>Mine or Stake Crypto</h3><p>Earn rewards by mining or staking your favorite cryptocurrencies.</p></div>
+    <div class="card"><div class="icon">♙</div><h3>Verified Traders</h3><p>Trade with confidence using our verified and experienced traders.</p></div>
   </div>
+  <div class="feature-row2">
+    <div class="card"><div class="icon">ϟ</div><h3>Fast Trades</h3><p>Execute trades quickly and efficiently with our advanced trading engine.</p></div>
+    <div class="card"><div class="icon">▣</div><h3>Understanding Bitcoin &amp; Blockchain</h3><p>Learn the basics and stay informed with our educational resources.</p></div>
+    <div class="card"><div class="icon">◎</div><h3>Proven Strategies &amp; Systematization</h3><p>Follow proven strategies and automated systems designed for consistent results.</p></div>
+  </div>
+</div>
+</section>
 
-  <button id="chatLauncher" class="chat-launcher">Support</button>
-  <div id="chatPanel" class="chat-panel hidden">
-    <div class="chat-header"><strong>Support</strong><button class="icon-btn" data-close-chat>&times;</button></div>
-    <div class="chat-body">
-      <p>We answer support requests by email. Include your account email and a short description of the issue.</p>
+<section class="section" id="how">
+<div class="container steps">
+  <div><span class="eyebrow">Simple Steps</span><h2 class="section-title">How It Works</h2><p class="section-copy">Get started in just a few minutes and begin your journey with BlockHarborMarkets.</p></div>
+  <div class="step-grid">
+    <div class="step"><div class="icon">♙</div><h4>Create Account</h4><p>Sign up with your email and set up your profile.</p></div>
+    <div class="step"><div class="icon">◈</div><h4>Verify Identity</h4><p>Complete KYC verification for your security.</p></div>
+    <div class="step"><div class="icon">▣</div><h4>Fund Account</h4><p>Deposit using supported payment methods.</p></div>
+    <div class="step"><div class="icon">⌁</div><h4>Start Trading</h4><p>Access the market and begin your investment journey.</p></div>
+  </div>
+</div>
+</section>
+
+<section class="section" id="pricing">
+<div class="container">
+  <div class="platform">
+    <div><span class="eyebrow">Platform Features</span><h2 class="section-title">Everything You Need<br>in One Platform</h2><p class="section-copy">Powerful tools, real-time data and educational resources to help you make informed decisions.</p><a class="btn btn-primary" href="#" style="margin-top:20px">Explore All Features →</a></div>
+    <div class="tools">
+      <div class="tool"><h4>📈 Live Market Data</h4><p>Real-time prices and advanced charts.</p></div>
+      <div class="tool"><h4>◉ Portfolio Tracking</h4><p>Monitor your assets in one place.</p></div>
+      <div class="tool"><h4>▣ Trading Tools</h4><p>Professional tools for better decisions.</p></div>
+      <div class="tool"><h4>▯ Mobile App</h4><p>Trade anytime, anywhere.</p></div>
+      <div class="tool"><h4>▤ Educational Resources</h4><p>Learn and improve your skills.</p></div>
+      <div class="tool"><h4>◌ 24/7 Support</h4><p>Get help whenever you need it.</p></div>
     </div>
   </div>
+  <div class="stats">
+    <div><h2>Our Growing Community</h2><p style="font-size:10px;opacity:.8">Join a global community of traders and investors.</p></div>
+    <div class="stat"><strong>12,450+</strong><span>Registered Users</span></div>
+    <div class="stat"><strong>$328.7M</strong><span>Trading Volume</span></div>
+    <div class="stat"><strong>99.9%</strong><span>Platform Uptime</span></div>
+  </div>
+</div>
+</section>
 
-  <script src="assets/js/app.js"></script>
+<section class="section" id="about">
+<div class="container about">
+  <div class="about-art">₿ ◇</div>
+  <div class="about-copy"><span class="eyebrow">About BlockHarborMarkets</span><h2 class="section-title">Your Partner in Crypto Success</h2><p class="section-copy">BlockHarborMarkets is a modern crypto platform designed to help you navigate the crypto world with confidence. We combine advanced trading tools, educational resources and a secure environment to support your financial goals.</p><a class="btn btn-primary" href="#">Learn More →</a></div>
+</div>
+</section>
+
+<section class="section" id="faq">
+<div class="container faq">
+  <div><span class="eyebrow">Common Questions</span><h2 class="section-title">Frequently Asked Questions</h2><p class="section-copy">Find answers to the most common questions about our platform, accounts, deposits, withdrawals and more.</p></div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-a1">How do I deposit money and fund my account?<b>+</b></button>
+      <div class="faq-a" id="faq-a1" role="region" hidden><p>Open the deposit page from your dashboard to get the deposit address for the asset and network you want to use, then send funds from your own wallet or exchange. If a deposit does not appear on your account, contact support with the transaction hash.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-a2">Is BlockHarborMarkets a regulated broker?<b>+</b></button>
+      <div class="faq-a" id="faq-a2" role="region" hidden><p>BlockHarborMarkets is a self-custody account and portfolio platform. We do not hold client funds, execute trades on your behalf, or provide investment advice. For questions about our regulatory status, contact support.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-a3">How do I withdraw money?<b>+</b></button>
+      <div class="faq-a" id="faq-a3" role="region" hidden><p>Submit a withdrawal request from your dashboard with the amount and the destination address. Requests are recorded against your account as pending and are reviewed before they are processed.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-a4">What are the fees and commissions?<b>+</b></button>
+      <div class="faq-a" id="faq-a4" role="region" hidden><p>Fee information is not currently published on this site. Contact support for the current schedule before you transact.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-a5">Is there a mobile app?<b>+</b></button>
+      <div class="faq-a" id="faq-a5" role="region" hidden><p>There is no separate mobile app. The platform runs in your mobile browser at this site, and every page is laid out for phone screens.</p></div>
+    </div>
+  </div>
+</div>
+</section>
+</main>
+
+<footer class="footer">
+<div class="container">
+  <div class="footer-grid">
+    <div><a class="logo" href="#"><i class="logo-mark"></i><span>BlockHarborMarkets</span></a><p>Build your wealth step by step.</p></div>
+    <div><h4>Company</h4><a href="#about">About</a><a href="#">Contact</a><a href="#">Careers</a></div>
+    <div><h4>Legal</h4><a href="#">Terms &amp; Conditions</a><a href="#">Privacy Policy</a><a href="#">Risk Disclosure</a><a href="#">AML/KYC Policy</a><a href="#">Cookie Policy</a></div>
+    <div><h4>Trading</h4><a href="#markets">Markets</a><a href="#">Fees</a><a href="#">Withdrawals</a><a href="#">Security</a></div>
+    <div><h4>Regulatory Information</h4><p>BlockHarborMarkets is operated by [Company Name]. We are committed to compliance with applicable regulations in all jurisdictions where we operate.</p></div>
+  </div>
+  <div class="bottom"><span>© 2026 BlockHarborMarkets. All rights reserved.</span><span>Terms &nbsp; Privacy &nbsp; Cookies</span></div>
+</div>
+</footer>
+<script>
+(function () {
+  document.querySelectorAll('.faq-item').forEach(function (item) {
+    var btn = item.querySelector('.faq-q');
+    var panel = item.querySelector('.faq-a');
+    if (!btn || !panel) return;
+    btn.addEventListener('click', function () {
+      var open = item.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.hidden = !open;
+    });
+  });
+})();
+</script>
 </body>
 </html>
