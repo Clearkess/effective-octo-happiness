@@ -59,14 +59,14 @@
       </header>
 
       <section class="dashboard-grid">
-        <div class="panel glass highlight"><span>Total portfolio balance</span><strong id="totalBalance">$128,440.92</strong><small class="up">+$7,744 this month</small></div>
-        <div class="panel glass"><span>Available cash</span><strong id="availableCash">$19,200.00</strong><small>Ready for transfer</small></div>
+        <div class="panel glass highlight"><span>Total portfolio balance</span><strong id="totalBalance">&mdash;</strong><small id="balanceNote">Portfolio value</small></div>
+        <div class="panel glass"><span>Available cash</span><strong id="availableCash">&mdash;</strong><small>Ready for transfer</small></div>
         <div class="panel glass"><span>Verification status</span><strong id="kycStatus">In review</strong><small id="kycDetail">2 of 5 steps complete</small></div>
       </section>
 
       <section class="dashboard-columns">
         <div class="panel glass large">
-          <div class="panel-head"><h2>Holdings</h2><span class="muted">Live demo data</span></div>
+          <div class="panel-head"><h2>Holdings</h2><span class="muted" id="holdingsNote">Live demo data</span></div>
           <table class="holdings-table">
             <thead><tr><th>Asset</th><th>Allocation</th><th>Price</th><th>24h</th></tr></thead>
             <tbody id="holdingsTableBody"></tbody>

@@ -380,6 +380,9 @@ function renderDashboard() {
   $('#kycStatus') && ($('#kycStatus').textContent = appState.portfolio.kycStatus || (appState.portfolio.kycSubmitted ? 'submitted' : 'in review'));
   $('#kycDetail') && ($('#kycDetail').textContent = appState.portfolio.kycSubmitted ? 'Final package awaiting review' : `${Math.max(1, appState.portfolio.kycStep + 1)} of 5 steps complete`);
   $('#portfolioInline') && ($('#portfolioInline').textContent = `${appState.portfolio.holdings.length} tracked assets`);
+  // Label the figures from the data itself: seeded demo values or the user's real positions.
+  $('#holdingsNote') && ($('#holdingsNote').textContent = appState.portfolio.isDemoData === false ? 'Your positions' : 'Live demo data');
+  $('#balanceNote') && ($('#balanceNote').textContent = typeof appState.portfolio.investedValue === 'number' ? `${currency(appState.portfolio.investedValue)} invested` : 'Portfolio value');
   const reviewerPanel = $('#kycReviewerPanel');
   if (reviewerPanel) reviewerPanel.textContent = appState.portfolio.kycReviewerNote || 'No reviewer note yet.';
   renderHoldings();
