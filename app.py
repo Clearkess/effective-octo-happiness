@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import os
 import secrets
 import sqlite3
@@ -28,10 +30,30 @@ SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(DEFAULT_SQLITE_PATH)))
 DEFAULT_VERCEL_UPLOAD_ROOT = Path("/tmp/blockharbor/kyc")
 DEFAULT_UPLOAD_PATH = DEFAULT_VERCEL_UPLOAD_ROOT if os.getenv("VERCEL") == "1" else DEFAULT_UPLOAD_ROOT
 UPLOAD_ROOT = Path(os.getenv("UPLOAD_ROOT", str(DEFAULT_UPLOAD_PATH)))
+
+
+def kyc_storage_backend() -> str:
+    """Return "db" or "filesystem" for KYC document storage.
+
+    On Vercel the deployment filesystem is read-only apart from /tmp, and
+    /tmp is per-instance and discarded on cold start, so a document written
+    there can silently disappear. "auto" therefore keeps documents in the
+    database there. Set KYC_STORAGE=filesystem or KYC_STORAGE=db to force it.
+    """
+    if KYC_STORAGE in ("db", "filesystem"):
+        return KYC_STORAGE
+    return "db" if VERCEL_RUNTIME else "filesystem"
 SESSION_DAYS = int(os.getenv("SESSION_DAYS", "14"))
 PORT = int(os.getenv("PORT") or "8000")
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "16"))
+# Vercel sets VERCEL=1 in the build and in the function runtime.
+VERCEL_RUNTIME = os.getenv("VERCEL") == "1"
+# Where KYC documents live. "auto" = database on Vercel (its filesystem is
+# read-only and wiped between cold starts), disk everywhere else.
+KYC_STORAGE = os.getenv("KYC_STORAGE", "auto").strip().lower()
+# Vercel rejects request bodies over ~4.5 MB before our code ever runs.
+MAX_KYC_DB_MB = int(os.getenv("MAX_KYC_DB_MB", "4"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@blockharbor.local")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 APP_ENV = os.getenv("APP_ENV", "development")
@@ -51,12 +73,17 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 app.config["JSON_SORT_KEYS"] = False
 
-DEFAULT_HOLDINGS = [
-    {"symbol": "BTC", "name": "Bitcoin", "pct": 42, "color": "#46a0ff", "price": 104821, "change": 2.1},
-    {"symbol": "ETH", "name": "Ethereum", "pct": 28, "color": "#7c4dff", "price": 5148, "change": 1.4},
-    {"symbol": "SOL", "name": "Solana", "pct": 16, "color": "#36d399", "price": 311, "change": -0.5},
-    {"symbol": "USDC", "name": "USDC", "pct": 14, "color": "#ffd36f", "price": 1, "change": 0},
+# Starting positions written into the database the first time a user is seen.
+# These are seed values, not account data: `portfolio.is_demo` stays TRUE and
+# the API reports it so the UI can label the figures honestly. Replace them
+# with real positions via PUT /api/admin/users/<id>/portfolio.
+SEED_HOLDINGS = [
+    {"symbol": "BTC", "name": "Bitcoin", "quantity": 0.44, "price": 104821, "change": 2.1, "color": "#46a0ff"},
+    {"symbol": "ETH", "name": "Ethereum", "quantity": 6.0, "price": 5148, "change": 1.4, "color": "#7c4dff"},
+    {"symbol": "SOL", "name": "Solana", "quantity": 56.0, "price": 311, "change": -0.5, "color": "#36d399"},
+    {"symbol": "USDC", "name": "USDC", "quantity": 15200.0, "price": 1, "change": 0, "color": "#ffd36f"},
 ]
+SEED_CASH_BALANCE = 19200.00
 
 
 # The HTML pages reference /assets/css/styles.css and /assets/js/app.js, but the
@@ -150,6 +177,30 @@ CREATE TABLE IF NOT EXISTS kyc_files (
     reviewer_note TEXT,
     created_at TEXT NOT NULL,
     reviewed_at TEXT,
+    storage_backend TEXT NOT NULL DEFAULT 'filesystem',
+    content_sha256 TEXT,
+    file_data BLOB,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS portfolio (
+    user_id INTEGER PRIMARY KEY,
+    cash_balance REAL NOT NULL DEFAULT 0,
+    is_demo INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS holdings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    symbol TEXT NOT NULL,
+    name TEXT NOT NULL,
+    quantity REAL NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
+    change_24h REAL NOT NULL DEFAULT 0,
+    color TEXT,
+    updated_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 """
@@ -238,7 +289,31 @@ POSTGRES_SCHEMA = [
         status TEXT NOT NULL DEFAULT 'uploaded',
         reviewer_note TEXT,
         created_at TEXT NOT NULL,
-        reviewed_at TEXT
+        reviewed_at TEXT,
+        storage_backend TEXT NOT NULL DEFAULT 'filesystem',
+        content_sha256 TEXT,
+        file_data BYTEA
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS portfolio (
+        user_id BIGINT PRIMARY KEY REFERENCES users(id),
+        cash_balance DOUBLE PRECISION NOT NULL DEFAULT 0,
+        is_demo BOOLEAN NOT NULL DEFAULT TRUE,
+        updated_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS holdings (
+        id BIGSERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id),
+        symbol TEXT NOT NULL,
+        name TEXT NOT NULL,
+        quantity DOUBLE PRECISION NOT NULL DEFAULT 0,
+        price DOUBLE PRECISION NOT NULL DEFAULT 0,
+        change_24h DOUBLE PRECISION NOT NULL DEFAULT 0,
+        color TEXT,
+        updated_at TEXT NOT NULL
     )
     """,
 ]
@@ -330,6 +405,24 @@ def safe_execute(sql: str, params: Iterable[Any] = (), conn=None) -> bool:
         return False
 
 
+def row_get(row, key, default=None):
+    """Read a column portably: sqlite3.Row raises IndexError, dicts KeyError."""
+    try:
+        value = row[key]
+    except (KeyError, IndexError):
+        return default
+    return default if value is None else value
+
+
+# Explicit column list for KYC metadata. Deliberately excludes file_data: a bare
+# SELECT * would drag every stored document over the wire on list requests.
+KYC_FILE_COLUMNS = (
+    "id, user_id, step_key, document_type, original_name, stored_name, file_path, "
+    "mime_type, size_bytes, status, reviewer_note, created_at, reviewed_at, "
+    "storage_backend, content_sha256"
+)
+
+
 def ensure_column(conn, table: str, column_name: str, definition: str) -> None:
     if DB_BACKEND == "sqlite":
         existing = {row["name"] for row in query_all(f"PRAGMA table_info({table})", conn=conn)}
@@ -364,6 +457,9 @@ def init_db() -> None:
     ensure_column(conn, "kyc", "status", "status TEXT NOT NULL DEFAULT 'draft'")
     ensure_column(conn, "kyc", "reviewer_note", "reviewer_note TEXT")
     ensure_column(conn, "kyc", "reviewed_at", "reviewed_at TEXT")
+    ensure_column(conn, "kyc_files", "storage_backend", "storage_backend TEXT NOT NULL DEFAULT 'filesystem'")
+    ensure_column(conn, "kyc_files", "content_sha256", "content_sha256 TEXT")
+    ensure_column(conn, "kyc_files", "file_data", f"file_data {'BYTEA' if DB_BACKEND == 'postgres' else 'BLOB'}")
     commit(conn)
 
     admin = query_one("SELECT id FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
@@ -498,6 +594,8 @@ def serialize_kyc_file(row) -> dict[str, Any]:
         "reviewerNote": row["reviewer_note"],
         "createdAt": row["created_at"],
         "reviewedAt": row["reviewed_at"],
+        "storageBackend": row_get(row, "storage_backend", "filesystem"),
+        "checksum": row_get(row, "content_sha256"),
     }
 
 
@@ -539,6 +637,23 @@ def ensure_user_bootstrap(user_id: int, conn=None) -> None:
             [
                 (user_id, "BTC", "BTC", f"bc1qblockharbor{int(user_id):04d}btc89f2"),
                 (user_id, "USDT", "ERC-20", f"0xB10cHarbor{int(user_id):04d}00000000000000000000"),
+            ],
+            conn=target,
+        )
+
+    if not query_one("SELECT user_id FROM portfolio WHERE user_id = ?", (user_id,), conn=target):
+        safe_execute(
+            "INSERT INTO portfolio (user_id, cash_balance, is_demo, updated_at) VALUES (?, ?, ?, ?)",
+            (user_id, SEED_CASH_BALANCE, True, iso_now()),
+            conn=target,
+        )
+
+    if not query_one("SELECT id FROM holdings WHERE user_id = ? LIMIT 1", (user_id,), conn=target):
+        executemany(
+            "INSERT INTO holdings (user_id, symbol, name, quantity, price, change_24h, color, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                (user_id, h["symbol"], h["name"], h["quantity"], h["price"], h["change"], h["color"], iso_now())
+                for h in SEED_HOLDINGS
             ],
             conn=target,
         )
@@ -591,8 +706,74 @@ def sync_kyc_status(user_id: int) -> None:
     commit()
 
 
+def allocate_percentages(values: list[float], total: int = 100) -> list[int]:
+    """Split `total` across `values` so the parts sum to exactly `total`.
+
+    Rounding each share independently drifts (four assets can total 101%), so the
+    remainders are distributed to the largest fractional parts first.
+    """
+    if not values or sum(values) <= 0:
+        return [0] * len(values)
+    scale = total / sum(values)
+    raw = [v * scale for v in values]
+    parts = [int(r) for r in raw]
+    leftover = total - sum(parts)
+    order = sorted(range(len(raw)), key=lambda i: raw[i] - parts[i], reverse=True)
+    for i in order[:leftover]:
+        parts[i] += 1
+    return parts
+
+
+def load_portfolio(user_id: int) -> dict[str, Any]:
+    """Portfolio figures computed from the database, not from source code.
+
+    totalBalance = sum(quantity x price) + cash, and each holding's allocation
+    percentage is derived from those values rather than stored by hand.
+    `isDemoData` is True while the rows are still the seeded starting values.
+    """
+    account = query_one("SELECT cash_balance, is_demo FROM portfolio WHERE user_id = ?", (user_id,))
+    rows = query_all(
+        "SELECT symbol, name, quantity, price, change_24h, color FROM holdings WHERE user_id = ? ORDER BY id ASC",
+        (user_id,),
+    )
+    cash = float(account["cash_balance"]) if account else 0.0
+    is_demo = bool(account["is_demo"]) if account else True
+
+    holdings = []
+    invested = 0.0
+    for row in rows:
+        value = float(row["quantity"]) * float(row["price"])
+        invested += value
+        holdings.append(
+            {
+                "symbol": row["symbol"],
+                "name": row["name"],
+                "quantity": float(row["quantity"]),
+                "price": float(row["price"]),
+                "change": float(row["change_24h"]),
+                "color": row["color"] or "#46a0ff",
+                "value": round(value, 2),
+            }
+        )
+    for item, pct in zip(holdings, allocate_percentages([h["value"] for h in holdings])):
+        item["pct"] = pct
+
+    return {
+        "totalBalance": round(invested + cash, 2),
+        "availableCash": round(cash, 2),
+        "investedValue": round(invested, 2),
+        "holdings": holdings,
+        "isDemoData": is_demo,
+    }
+
+
 def fetch_kyc_file(file_id: int):
-    return query_one("SELECT * FROM kyc_files WHERE id = ?", (file_id,))
+    return query_one(f"SELECT {KYC_FILE_COLUMNS} FROM kyc_files WHERE id = ?", (file_id,))
+
+
+def fetch_kyc_blob(file_id: int):
+    row = query_one("SELECT file_data FROM kyc_files WHERE id = ?", (file_id,))
+    return row["file_data"] if row else None
 
 
 @app.get("/api/health")
@@ -676,9 +857,7 @@ def dashboard_overview():
         {
             "user": serialize_user(g.current_user),
             "portfolio": {
-                "totalBalance": 128440.92,
-                "availableCash": 19200.00,
-                "holdings": DEFAULT_HOLDINGS,
+                **load_portfolio(user_id),
                 "wallet": wallet["address"] if wallet else None,
                 "kycSubmitted": bool(kyc["submitted"]) if kyc else False,
                 "kycStep": int(kyc["current_step"]) if kyc else 0,
@@ -831,8 +1010,6 @@ def list_kyc_files():
 @app.post("/api/kyc/files")
 @auth_required
 def upload_kyc_file():
-    if os.getenv("VERCEL") == "1" and not os.getenv("KYC_OBJECT_STORAGE_URL"):
-        return jsonify({"error": "KYC file storage is not configured for Vercel. Configure object storage before enabling document uploads."}), 503
     upload = request.files.get("file")
     step_key = (request.form.get("stepKey") or "general").strip()
     document_type = (request.form.get("documentType") or step_key).strip()
@@ -843,24 +1020,80 @@ def upload_kyc_file():
     if not safe_name:
         return jsonify({"error": "Invalid filename"}), 400
 
+    backend = kyc_storage_backend()
+    if backend == "filesystem" and VERCEL_RUNTIME:
+        return (
+            jsonify(
+                {
+                    "error": "KYC_STORAGE=filesystem cannot be used on Vercel: the filesystem is "
+                    "read-only apart from /tmp, which is discarded on cold start. Use KYC_STORAGE=db."
+                }
+            ),
+            503,
+        )
+
+    payload = upload.read()
+    size_bytes = len(payload)
+    if size_bytes == 0:
+        return jsonify({"error": "The selected file is empty"}), 400
+    if size_bytes > MAX_UPLOAD_MB * 1024 * 1024:
+        return jsonify({"error": f"File is larger than the {MAX_UPLOAD_MB} MB limit"}), 413
+    if backend == "db" and size_bytes > MAX_KYC_DB_MB * 1024 * 1024:
+        return (
+            jsonify(
+                {
+                    "error": f"Files up to {MAX_KYC_DB_MB} MB are accepted while documents are stored in "
+                    "the database. Raise MAX_KYC_DB_MB, or configure KYC_STORAGE=filesystem with a "
+                    "persistent volume."
+                }
+            ),
+            413,
+        )
+
     user_id = g.current_user["id"]
     created_at = iso_now()
-    user_dir = UPLOAD_ROOT / str(user_id)
-    user_dir.mkdir(parents=True, exist_ok=True)
     stored_name = f"{secrets.token_hex(8)}_{safe_name}"
-    target = user_dir / stored_name
-    upload.save(target)
-    size_bytes = target.stat().st_size
+    digest = hashlib.sha256(payload).hexdigest()
 
-    execute(
-        "INSERT INTO kyc_files (user_id, step_key, document_type, original_name, stored_name, file_path, mime_type, size_bytes, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'uploaded', ?)",
-        (user_id, step_key, document_type, upload.filename, stored_name, str(target), upload.mimetype, size_bytes, created_at),
+    if backend == "db":
+        file_path = "pending"
+    else:
+        user_dir = UPLOAD_ROOT / str(user_id)
+        user_dir.mkdir(parents=True, exist_ok=True)
+        target = user_dir / stored_name
+        target.write_bytes(payload)
+        file_path = str(target)
+
+    insert_sql = (
+        "INSERT INTO kyc_files (user_id, step_key, document_type, original_name, stored_name, file_path, "
+        "mime_type, size_bytes, status, created_at, storage_backend, content_sha256) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'uploaded', ?, ?, ?)"
     )
+    insert_params = (
+        user_id,
+        step_key,
+        document_type,
+        upload.filename,
+        stored_name,
+        file_path,
+        upload.mimetype,
+        size_bytes,
+        created_at,
+        backend,
+        digest,
+    )
+    if DB_BACKEND == "postgres":
+        new_id = execute(insert_sql + " RETURNING id", insert_params).fetchone()["id"]
+    else:
+        new_id = execute(insert_sql, insert_params).lastrowid
+
+    if backend == "db":
+        execute("UPDATE kyc_files SET file_data = ?, file_path = ? WHERE id = ?", (payload, f"db://kyc_files/{new_id}", new_id))
     execute("UPDATE kyc SET status = 'uploaded' WHERE user_id = ? AND status = 'draft'", (user_id,))
     commit()
     record_transaction(user_id, "KYC Upload", document_type, upload.filename, "Document received", "Uploaded")
     sync_kyc_status(user_id)
-    newest = query_one("SELECT * FROM kyc_files WHERE user_id = ? ORDER BY id DESC LIMIT 1", (user_id,))
+    newest = query_one(f"SELECT {KYC_FILE_COLUMNS} FROM kyc_files WHERE id = ?", (new_id,))
     return jsonify({"file": serialize_kyc_file(newest)})
 
 
@@ -872,7 +1105,22 @@ def download_kyc_file(file_id: int):
         abort(404)
     if g.current_user["role"] != "admin" and row["user_id"] != g.current_user["id"]:
         return jsonify({"error": "Forbidden"}), 403
-    return send_file(Path(row["file_path"]), as_attachment=True, download_name=row["original_name"])
+
+    if row_get(row, "storage_backend", "filesystem") == "db":
+        blob = fetch_kyc_blob(file_id)
+        if blob is None:
+            return jsonify({"error": "Stored document is missing"}), 404
+        return send_file(
+            io.BytesIO(bytes(blob)),
+            as_attachment=True,
+            download_name=row["original_name"],
+            mimetype=row["mime_type"] or "application/octet-stream",
+        )
+
+    path = Path(row["file_path"])
+    if not path.exists():
+        return jsonify({"error": "Stored document is missing from disk"}), 404
+    return send_file(path, as_attachment=True, download_name=row["original_name"])
 
 
 @app.post("/api/profile/wallet")
@@ -910,6 +1158,76 @@ def admin_overview():
     return jsonify({"stats": stats, "recentUsers": [dict(row) for row in recent_users], "pendingFiles": [dict(row) for row in pending_files]})
 
 
+@app.put("/api/admin/users/<int:user_id>/portfolio")
+@admin_required
+def admin_update_portfolio(user_id: int):
+    """Replace the seeded demo positions with real account data.
+
+    Send {"cashBalance": 0, "isDemo": false, "holdings": [{"symbol": "BTC",
+    "quantity": 0.5, "price": 104821}]}. Symbols already present are updated;
+    new symbols need a price. Setting isDemo false stops the UI labelling the
+    figures as demo.
+    """
+    if not query_one("SELECT id FROM users WHERE id = ?", (user_id,)):
+        return jsonify({"error": "Unknown user"}), 404
+    if not query_one("SELECT user_id FROM portfolio WHERE user_id = ?", (user_id,)):
+        return jsonify({"error": "This user has no portfolio row yet"}), 404
+
+    payload = request.get_json(silent=True) or {}
+
+    if "cashBalance" in payload:
+        try:
+            cash = float(payload["cashBalance"])
+        except (TypeError, ValueError):
+            return jsonify({"error": "cashBalance must be a number"}), 400
+        execute("UPDATE portfolio SET cash_balance = ?, updated_at = ? WHERE user_id = ?", (cash, iso_now(), user_id))
+
+    if "isDemo" in payload:
+        execute("UPDATE portfolio SET is_demo = ?, updated_at = ? WHERE user_id = ?", (bool(payload["isDemo"]), iso_now(), user_id))
+
+    holdings = payload.get("holdings")
+    if holdings is not None and not isinstance(holdings, list):
+        return jsonify({"error": "holdings must be a list"}), 400
+    for item in holdings or []:
+        if not isinstance(item, dict):
+            return jsonify({"error": "each holding must be an object"}), 400
+        symbol = str(item.get("symbol") or "").strip().upper()
+        if not symbol:
+            return jsonify({"error": "each holding needs a symbol"}), 400
+        try:
+            quantity = float(item.get("quantity"))
+        except (TypeError, ValueError):
+            return jsonify({"error": f"quantity for {symbol} must be a number"}), 400
+        raw_price = item.get("price")
+        price = None
+        if raw_price is not None:
+            try:
+                price = float(raw_price)
+            except (TypeError, ValueError):
+                return jsonify({"error": f"price for {symbol} must be a number"}), 400
+
+        existing = query_one("SELECT id FROM holdings WHERE user_id = ? AND symbol = ?", (user_id, symbol))
+        if existing:
+            if price is None:
+                execute("UPDATE holdings SET quantity = ?, updated_at = ? WHERE id = ?", (quantity, iso_now(), existing["id"]))
+            else:
+                execute(
+                    "UPDATE holdings SET quantity = ?, price = ?, updated_at = ? WHERE id = ?",
+                    (quantity, price, iso_now(), existing["id"]),
+                )
+        elif price is not None:
+            execute(
+                "INSERT INTO holdings (user_id, symbol, name, quantity, price, change_24h, color, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (user_id, symbol, str(item.get("name") or symbol), quantity, price, 0, item.get("color"), iso_now()),
+            )
+        else:
+            return jsonify({"error": f"{symbol} is a new holding and needs a price"}), 400
+
+    commit()
+    return jsonify({"portfolio": load_portfolio(user_id)})
+
+
 @app.get("/api/admin/users")
 @admin_required
 def admin_users():
@@ -932,7 +1250,12 @@ def admin_users():
 def admin_kyc_files():
     rows = query_all(
         """
-        SELECT kyc_files.*, users.first_name, users.last_name, users.email
+        SELECT kyc_files.id, kyc_files.user_id, kyc_files.step_key, kyc_files.document_type,
+               kyc_files.original_name, kyc_files.stored_name, kyc_files.file_path,
+               kyc_files.mime_type, kyc_files.size_bytes, kyc_files.status,
+               kyc_files.reviewer_note, kyc_files.created_at, kyc_files.reviewed_at,
+               kyc_files.storage_backend, kyc_files.content_sha256,
+               users.first_name, users.last_name, users.email
         FROM kyc_files
         JOIN users ON users.id = kyc_files.user_id
         ORDER BY kyc_files.id DESC
