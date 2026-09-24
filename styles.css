@@ -161,12 +161,13 @@ body.light-theme .ticker-wrap { background: rgba(237, 244, 255, 0.80); }
   align-items: center;
 }
 .hero-card { border-radius: 28px; padding: 24px; }
-.stat-grid, .feature-grid, .market-grid, .info-grid, .testimonial-grid, .cards-3, .dashboard-grid {
+.stat-grid, .feature-grid, .market-grid, .info-grid, .testimonial-grid, .cards-3, .cards-4, .dashboard-grid {
   display: grid;
   gap: 18px;
 }
 .stat-grid { grid-template-columns: 1fr 1fr; }
 .feature-grid, .cards-3, .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+.cards-4 { grid-template-columns: repeat(4, 1fr); }
 .market-grid, .info-grid { grid-template-columns: repeat(4, 1fr); }
 .testimonial-grid { grid-template-columns: repeat(3, 1fr); }
 .stat-card, .feature-card, .market-card, .auth-card, .panel, .kyc-panel, .kyc-steps, .sidebar, .testimonial, .mini-card, .cta-band, .faq-item, .upload-box, .review-card, .qr-card, .summary-card {
@@ -356,3 +357,7 @@ body.light-theme .toast { background: #163154; }
   .ticker-inner .pill.live { font-size: 10px; padding: 4px 8px; }
   .ticker-item { padding: 5px 9px; font-size: 0.8rem; }
 }
+
+/* ===== ADMIN STAT GRID: four cards need to fold before .cards-3 does ===== */
+@media (max-width: 1100px) { .cards-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 780px) { .cards-4 { grid-template-columns: 1fr; } }

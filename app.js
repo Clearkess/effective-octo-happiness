@@ -326,7 +326,7 @@ function renderHoldings() {
 function renderActivity() {
   const list = $('#activityList');
   if (!list) return;
-  list.innerHTML = appState.activity.map(item => `<li><span>${item.label}</span><em>${item.time}</em></li>`).join('');
+  list.innerHTML = appState.activity.map(item => `<li><span>${item.label}</span><em>${formatTimestamp(item.time)}</em></li>`).join('');
 }
 
 function renderTransactionsPage() {
@@ -638,10 +638,23 @@ async function loadKycFiles() {
   renderKycFiles();
 }
 
+// Timestamps arrive as ISO-8601 with microseconds and a +00:00 offset, e.g.
+// 2026-09-23T23:59:46.817987+00:00. Render them in the viewer's locale.
+function formatTimestamp(value) {
+  if (!value) return '\u2014';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return String(value);
+  return parsed.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
 function renderAdminOverview() {
   if (appState.admin.stats) {
     $('#adminUsersCount') && ($('#adminUsersCount').textContent = appState.admin.stats.users);
     $('#adminPendingCount') && ($('#adminPendingCount').textContent = appState.admin.stats.pendingFiles);
+    $('#adminSubmittedCount') && ($('#adminSubmittedCount').textContent = appState.admin.stats.submittedKyc ?? 0);
     $('#adminTxCount') && ($('#adminTxCount').textContent = appState.admin.stats.transactions);
   }
 
@@ -670,6 +683,23 @@ function renderAdminOverview() {
       : '<div class="empty-state">No pending KYC files.</div>';
   }
 
+  // A package can be submitted with no files attached, in which case it never
+  // reaches the file queue above. Drive this list from kyc.status instead.
+  const submissions = $('#adminKycSubmissions');
+  if (submissions) {
+    const awaiting = (appState.admin.users || []).filter(u => u.kyc_status === 'submitted');
+    submissions.innerHTML = awaiting.length
+      ? awaiting.map(u => `
+        <div class="file-item glass-lite">
+          <div>
+            <strong>${u.first_name} ${u.last_name}</strong>
+            <div class="muted">${u.email}${u.kyc_submitted_at ? ` \u2022 submitted ${formatTimestamp(u.kyc_submitted_at)}` : ''}</div>
+          </div>
+          <span class="pill alert">Awaiting review</span>
+        </div>`).join('')
+      : '<div class="empty-state">No KYC packages awaiting review.</div>';
+  }
+
   const tbody = $('#adminUsersTableBody');
   if (tbody) {
     tbody.innerHTML = appState.admin.users.length
@@ -680,7 +710,7 @@ function renderAdminOverview() {
           <td>${user.role}</td>
           <td>${user.kyc_status}</td>
           <td>${user.wallet_address ? `${user.wallet_address.slice(0, 10)}...` : '—'}</td>
-          <td>${user.created_at}</td>
+          <td>${formatTimestamp(user.created_at)}</td>
         </tr>`).join('')
       : '<tr><td colspan="6" class="empty-state">No users found.</td></tr>';
   }

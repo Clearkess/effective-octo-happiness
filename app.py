@@ -1311,6 +1311,7 @@ def admin_users():
         """
         SELECT users.id, users.first_name, users.last_name, users.email, users.role, users.created_at,
                COALESCE(kyc.status, 'draft') AS kyc_status,
+               COALESCE(kyc.submitted_at, '') AS kyc_submitted_at,
                COALESCE(wallets.address, '') AS wallet_address
         FROM users
         LEFT JOIN kyc ON kyc.user_id = users.id

@@ -31,8 +31,9 @@
       <p class="lead small">Review uploaded KYC files, inspect user accounts, and monitor platform activity totals.</p>
     </section>
 
-    <section class="cards-3 section" id="adminStatsGrid">
+    <section class="cards-4 section" id="adminStatsGrid">
       <div class="summary-card glass"><span class="muted">Users</span><strong id="adminUsersCount">0</strong></div>
+      <div class="summary-card glass"><span class="muted">Submitted KYC</span><strong id="adminSubmittedCount">0</strong></div>
       <div class="summary-card glass"><span class="muted">Pending files</span><strong id="adminPendingCount">0</strong></div>
       <div class="summary-card glass"><span class="muted">Transactions</span><strong id="adminTxCount">0</strong></div>
     </section>
@@ -48,6 +49,11 @@
         <div id="adminRecentUsers" class="file-list"></div>
       </aside>
     </div>
+
+    <section class="panel glass section">
+      <div class="panel-head"><h2>Submitted packages</h2><span class="pill alert">Awaiting review</span></div>
+      <div id="adminKycSubmissions" class="file-list"></div>
+    </section>
 
     <section class="panel glass section">
       <div class="panel-head"><h2>All users</h2></div>
