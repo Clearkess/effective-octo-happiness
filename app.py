@@ -58,6 +58,15 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@blockharbor.local")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 APP_ENV = os.getenv("APP_ENV", "development")
 
+# Sign-in throttling. A failure is counted against both the email and the
+# caller IP over a rolling window; either counter reaching its limit locks
+# further attempts out until the oldest counted failure ages out. Two counters
+# so one attacker cannot lock a real user out by hammering their address, and
+# a spread-out attempt from many addresses still trips the per-IP limit.
+LOGIN_MAX_ATTEMPTS = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
+LOGIN_MAX_IP_ATTEMPTS = int(os.getenv("LOGIN_MAX_IP_ATTEMPTS", "20"))
+LOGIN_WINDOW_MINUTES = int(os.getenv("LOGIN_WINDOW_MINUTES", "15"))
+
 
 if APP_ENV == "production" and not DATABASE_URL:
     raise RuntimeError("DATABASE_URL must be set in production")
@@ -193,6 +202,16 @@ CREATE TABLE IF NOT EXISTS holdings (
     updated_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    ip TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts (email, created_at);
+CREATE INDEX IF NOT EXISTS idx_login_attempts_ip ON login_attempts (ip, created_at);
 """
 
 POSTGRES_SCHEMA = [
@@ -305,6 +324,16 @@ POSTGRES_SCHEMA = [
         updated_at TEXT NOT NULL
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS login_attempts (
+        id BIGSERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        ip TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts (email, created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_login_attempts_ip ON login_attempts (ip, created_at)",
 ]
 
 
@@ -314,6 +343,11 @@ def utc_now() -> datetime:
 
 def iso_now() -> str:
     return utc_now().isoformat()
+
+
+def login_window_start() -> str:
+    """ISO timestamp marking the start of the rolling throttle window."""
+    return (utc_now() - timedelta(minutes=LOGIN_WINDOW_MINUTES)).isoformat()
 
 
 def adapt_sql(sql: str) -> str:
@@ -451,7 +485,7 @@ def init_db() -> None:
     ensure_column(conn, "kyc_files", "file_data", f"file_data {'BYTEA' if DB_BACKEND == 'postgres' else 'BLOB'}")
     commit(conn)
 
-    admin = query_one("SELECT id FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
+    admin = query_one("SELECT id, password_hash FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
     if not admin:
         # Another instance may have created it between the check and the insert.
         if safe_execute(
@@ -469,10 +503,22 @@ def init_db() -> None:
             conn=conn,
         ):
             commit(conn)
-        admin = query_one("SELECT id FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
+        admin = query_one("SELECT id, password_hash FROM users WHERE email = ?", (ADMIN_EMAIL,), conn=conn)
 
     if not admin:
         raise RuntimeError("Could not create or read the bootstrap admin user")
+
+    # The environment is the source of truth for the bootstrap admin. Without
+    # this, rotating ADMIN_PASSWORD would do nothing: the INSERT above is
+    # skipped once the row exists, so a previously published password would
+    # keep working forever.
+    if ADMIN_PASSWORD and not check_password_hash(admin["password_hash"], ADMIN_PASSWORD):
+        execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            (generate_password_hash(ADMIN_PASSWORD), admin["id"]),
+            conn=conn,
+        )
+        commit(conn)
 
     ensure_user_bootstrap(admin["id"], conn=conn)
     commit(conn)
@@ -772,14 +818,92 @@ def signup():
     return jsonify({"token": token, "user": serialize_user(user)})
 
 
+def client_ip() -> str:
+    """Caller address. ProxyFix(x_for=1) resolves the real client on Vercel."""
+    return (request.remote_addr or "unknown").strip()[:64]
+
+
+_LOGIN_COUNT_COLUMNS = ("email", "ip")
+
+
+def count_login_failures(column: str, value: str) -> int:
+    if column not in _LOGIN_COUNT_COLUMNS:
+        raise ValueError(f"unsupported counter: {column}")
+    row = query_one(
+        f"SELECT COUNT(*) AS failures FROM login_attempts WHERE {column} = ? AND created_at >= ?",
+        (value, login_window_start()),
+    )
+    return int(row["failures"]) if row else 0
+
+
+def oldest_login_failure(column: str, value: str):
+    if column not in _LOGIN_COUNT_COLUMNS:
+        raise ValueError(f"unsupported counter: {column}")
+    return query_one(
+        f"SELECT MIN(created_at) AS first_seen FROM login_attempts WHERE {column} = ? AND created_at >= ?",
+        (value, login_window_start()),
+    )
+
+
+def login_locked_out(email: str) -> int:
+    """Seconds the caller must wait, or 0 when they may attempt a sign-in.
+
+    The lockout expires when the oldest failure still inside the window ages
+    out, so it is never a permanent state a user cannot recover from.
+    """
+    window_start = login_window_start()
+    email_failures = count_login_failures("email", email)
+    ip_failures = count_login_failures("ip", client_ip())
+    if email_failures < LOGIN_MAX_ATTEMPTS and ip_failures < LOGIN_MAX_IP_ATTEMPTS:
+        return 0
+    column, value = ("email", email) if email_failures >= LOGIN_MAX_ATTEMPTS else ("ip", client_ip())
+    row = oldest_login_failure(column, value)
+    first_seen = row["first_seen"] if row else None
+    if not first_seen:
+        return LOGIN_WINDOW_MINUTES * 60
+    try:
+        oldest = datetime.fromisoformat(first_seen)
+    except ValueError:
+        return LOGIN_WINDOW_MINUTES * 60
+    remaining = (oldest + timedelta(minutes=LOGIN_WINDOW_MINUTES) - utc_now()).total_seconds()
+    return max(1, int(remaining))
+
+
+def record_login_failure(email: str, ip: str) -> None:
+    execute("INSERT INTO login_attempts (email, ip, created_at) VALUES (?, ?, ?)", (email, ip, iso_now()))
+    # Anything older than the window can no longer affect a decision, so the
+    # table stays bounded no matter how much traffic it sees.
+    execute("DELETE FROM login_attempts WHERE created_at < ?", (login_window_start(),))
+    commit()
+
+
+def clear_login_failures(email: str) -> None:
+    execute("DELETE FROM login_attempts WHERE email = ?", (email,))
+    commit()
+
+
 @app.post("/api/auth/login")
 def login():
     payload = request.get_json(silent=True) or {}
     email = (payload.get("email") or "").strip().lower()
     password = payload.get("password") or ""
+    ip = client_ip()
+
+    retry_after = login_locked_out(email)
+    if retry_after:
+        # Checked before the password so a locked-out caller learns nothing
+        # about whether the account exists.
+        response = jsonify({"error": "Too many sign-in attempts. Please wait and try again."})
+        response.status_code = 429
+        response.headers["Retry-After"] = str(retry_after)
+        return response
+
     user = query_one("SELECT * FROM users WHERE email = ?", (email,))
     if not user or not check_password_hash(user["password_hash"], password):
+        record_login_failure(email, ip)
         return jsonify({"error": "Invalid email or password"}), 401
+
+    clear_login_failures(email)
     ensure_user_bootstrap(user["id"])
     token = create_session(user["id"])
     return jsonify({"token": token, "user": serialize_user(user)})
