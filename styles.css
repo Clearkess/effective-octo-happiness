@@ -339,3 +339,20 @@ body.light-theme .toast { background: #163154; }
   h1 { font-size: 2.2rem; }
   .hero-card { padding: 18px; }
 }
+
+/* ===== TICKER LABEL / PRICE-TRACK COLLISION FIX =====
+   The 'Market snapshot' pill is a flex sibling of the scrolling price track.
+   min-width: max-content on the track forced it to keep its full width, so the
+   pill absorbed all the shrinkage, wrapped to two lines and collided with BTC.
+   Pinning the pill stops it shrinking; the track overflows and is clipped. */
+.ticker-inner { display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.ticker-inner .pill.live { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 780px) {
+  .ticker-inner { gap: 8px; }
+  .ticker-inner .pill.live { font-size: 11px; padding: 5px 10px; }
+  .ticker-item { gap: 6px; padding: 6px 10px; font-size: 0.85rem; }
+}
+@media (max-width: 400px) {
+  .ticker-inner .pill.live { font-size: 10px; padding: 4px 8px; }
+  .ticker-item { padding: 5px 9px; font-size: 0.8rem; }
+}

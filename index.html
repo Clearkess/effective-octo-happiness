@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BlockHarbor Markets — Crypto investing interface</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='25' font-size='24'%3E%E2%97%88%3C/text%3E%3C/svg%3E" />
+  <title>BlockHarbor Markets — Crypto onboarding, verification and portfolio management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,12 +20,12 @@
     <div class="ticker-inner container">
       <div class="pill live">Market snapshot</div>
       <div class="ticker-track" aria-label="market ticker">
-        <div class="ticker-item"><b>BTC</b><span data-price="btc">$104,821</span><span data-change="btc" class="up">+2.1%</span></div>
-        <div class="ticker-item"><b>ETH</b><span data-price="eth">$5,148</span><span data-change="eth" class="up">+1.4%</span></div>
-        <div class="ticker-item"><b>SOL</b><span data-price="sol">$311</span><span data-change="sol" class="down">-0.5%</span></div>
-        <div class="ticker-item"><b>LINK</b><span data-price="link">$28.91</span><span data-change="link" class="up">+3.0%</span></div>
-        <div class="ticker-item"><b>BTC</b><span data-price="btc">$104,821</span><span data-change="btc" class="up">+2.1%</span></div>
-        <div class="ticker-item"><b>ETH</b><span data-price="eth">$5,148</span><span data-change="eth" class="up">+1.4%</span></div>
+        <div class="ticker-item"><b>BTC</b><span data-price="btc">—</span><span data-change="btc" class="up">—</span></div>
+        <div class="ticker-item"><b>ETH</b><span data-price="eth">—</span><span data-change="eth" class="up">—</span></div>
+        <div class="ticker-item"><b>SOL</b><span data-price="sol">—</span><span data-change="sol" class="down">—</span></div>
+        <div class="ticker-item"><b>LINK</b><span data-price="link">—</span><span data-change="link" class="up">—</span></div>
+        <div class="ticker-item"><b>BTC</b><span data-price="btc">—</span><span data-change="btc" class="up">—</span></div>
+        <div class="ticker-item"><b>ETH</b><span data-price="eth">—</span><span data-change="eth" class="up">—</span></div>
       </div>
     </div>
   </div>
@@ -56,14 +57,14 @@
             <a class="btn btn-secondary" href="dashboard.html">Open dashboard</a>
           </div>
           <div class="hero-badges">
-            <span>Responsive layout</span>
-            <span>Wallet connect UI</span>
-            <span>Account persistence</span>
+            <span>5-step identity verification</span>
+            <span>MetaMask wallet connect</span>
+            <span>Portfolio, deposits &amp; history</span>
           </div>
           <div class="stats-inline section">
             <div class="summary-card glass"><span class="muted">Markets</span><strong>BTC · ETH · SOL · LINK</strong></div>
             <div class="summary-card glass"><span class="muted">Verification</span><strong>5-step KYC</strong></div>
-            <div class="summary-card glass"><span class="muted">Account security</span><strong>Session-based access</strong></div>
+            <div class="summary-card glass"><span class="muted">Account security</span><strong>Hashed passwords &amp; isolated data</strong></div>
           </div>
         </div>
         <div class="hero-card glass">
@@ -74,16 +75,16 @@
               <small>Value, allocation and history</small>
             </div>
             <div class="stat-card">
-              <span>Yield products</span>
-              <strong>12</strong>
-              <small>Flexible dashboard widgets</small>
+              <span>Transactions</span>
+              <strong>Full history</strong>
+              <small>Deposits, buys and withdrawals</small>
             </div>
             <div class="stat-card wide">
               <span>Market watch</span>
               <div class="ticker-row">
-                <div><b>BTC</b><em data-price="btc">$104,821</em></div>
-                <div><b>ETH</b><em data-price="eth">$5,148</em></div>
-                <div><b>SOL</b><em data-price="sol">$311</em></div>
+                <div><b>BTC</b><em data-price="btc">—</em></div>
+                <div><b>ETH</b><em data-price="eth">—</em></div>
+                <div><b>SOL</b><em data-price="sol">—</em></div>
               </div>
             </div>
             <div class="stat-card wide">
@@ -101,15 +102,15 @@
       <section id="features" class="container section">
         <div class="section-heading">
           <div class="eyebrow">Feature set</div>
-          <h2>Everything needed for a polished crypto onboarding experience</h2>
+          <h2>Everything you need to open an account and manage your portfolio</h2>
         </div>
         <div class="feature-grid">
-          <article class="feature-card glass"><h3>Auth screens</h3><p>Sign up, log in, password visibility toggles, forgot-password modal, and secure session persistence.</p></article>
-          <article class="feature-card glass"><h3>KYC flow UI</h3><p>Five-step verification tracker for profile, identity upload, proof of address, selfie, and final review.</p></article>
-          <article class="feature-card glass"><h3>Wallet connect UI</h3><p>MetaMask detection, connect button, wallet state persistence, and dashboard badge updates.</p></article>
-          <article class="feature-card glass"><h3>User dashboard</h3><p>Portfolio cards, allocation chart, holdings table, activity feed, and quick action links.</p></article>
-          <article class="feature-card glass"><h3>Transactions</h3><p>Dedicated transaction history page with deposits, buys, withdrawals, and KYC-related activity.</p></article>
-          <article class="feature-card glass"><h3>Funding screens</h3><p>Deposit and withdrawal pages with copy address actions and validation-ready forms.</p></article>
+          <article class="feature-card glass"><h3>Accounts and sign-in</h3><p>Create an account, sign in securely, and reset your password if you need to.</p></article>
+          <article class="feature-card glass"><h3>Identity verification</h3><p>Work through a five-step check covering your profile, ID document, proof of address, a selfie and a final review.</p></article>
+          <article class="feature-card glass"><h3>Wallet connection</h3><p>Connect a browser wallet such as MetaMask, or use your account without one.</p></article>
+          <article class="feature-card glass"><h3>Portfolio dashboard</h3><p>See your holdings, allocation, activity and quick actions in one place.</p></article>
+          <article class="feature-card glass"><h3>Transaction history</h3><p>Review deposits, buys and withdrawals together with your verification activity.</p></article>
+          <article class="feature-card glass"><h3>Deposits and withdrawals</h3><p>Copy your deposit address, and submit withdrawal requests from your dashboard.</p></article>
         </div>
       </section>
 
@@ -119,18 +120,18 @@
           <h2>Market overview</h2>
         </div>
         <div class="market-grid">
-          <div class="market-card glass"><span>Bitcoin</span><strong data-price="btc">$104,821</strong><small data-change="btc" class="up">+2.1%</small></div>
-          <div class="market-card glass"><span>Ethereum</span><strong data-price="eth">$5,148</strong><small data-change="eth" class="up">+1.4%</small></div>
-          <div class="market-card glass"><span>Solana</span><strong data-price="sol">$311</strong><small data-change="sol" class="down">-0.5%</small></div>
-          <div class="market-card glass"><span>Chainlink</span><strong data-price="link">$28.91</strong><small data-change="link" class="up">+3.0%</small></div>
+          <div class="market-card glass"><span>Bitcoin</span><strong data-price="btc">—</strong><small data-change="btc" class="up">—</small></div>
+          <div class="market-card glass"><span>Ethereum</span><strong data-price="eth">—</strong><small data-change="eth" class="up">—</small></div>
+          <div class="market-card glass"><span>Solana</span><strong data-price="sol">—</strong><small data-change="sol" class="down">—</small></div>
+          <div class="market-card glass"><span>Chainlink</span><strong data-price="link">—</strong><small data-change="link" class="up">—</small></div>
         </div>
       </section>
 
       <section class="container section info-grid">
-        <div class="mini-card glass"><h3>Onboarding path</h3><p class="muted">Landing → signup → KYC → dashboard → funding → transaction review.</p></div>
-        <div class="mini-card glass"><h3>Account persistence</h3><p class="muted">Your onboarding, wallet and preferences are saved to your account.</p></div>
-        <div class="mini-card glass"><h3>Theme toggle</h3><p class="muted">Switch dark and light modes from the landing page or dashboard.</p></div>
-        <div class="mini-card glass"><h3>Security</h3><p class="muted">Hashed passwords, session tokens and per-user data isolation.</p></div>
+        <div class="mini-card glass"><h3>Getting started</h3><p class="muted">Create an account, finish verification, then fund your account and track it from the dashboard.</p></div>
+        <div class="mini-card glass"><h3>Your account</h3><p class="muted">Your profile, wallet connection and preferences are saved to your account.</p></div>
+        <div class="mini-card glass"><h3>Activity history</h3><p class="muted">Every deposit, buy and withdrawal is recorded against your account.</p></div>
+        <div class="mini-card glass"><h3>Security</h3><p class="muted">Passwords are stored hashed, and every account's data is kept separate.</p></div>
       </section>
 
       <section class="container section cta-band glass">
@@ -151,9 +152,9 @@
         </div>
         <div class="faq-list">
           <details class="faq-item glass" open><summary>How do I create an account</summary><p>Create an account, complete your profile details, and continue to the KYC screen.</p></details>
-          <details class="faq-item glass"><summary>How does identity verification work</summary><p>The KYC page uses a step-based interface for profile, document upload, selfie check, and proof of address.</p></details>
-          <details class="faq-item glass"><summary>How do deposits and withdrawals appear</summary><p>The dashboard links to deposit and withdraw pages with copy address actions and submission-ready forms.</p></details>
-          <details class="faq-item glass"><summary>Can I connect a wallet</summary><p>Yes. You can connect a browser wallet such as MetaMask. A fallback state is shown when no wallet provider is available.</p></details>
+          <details class="faq-item glass"><summary>How does identity verification work</summary><p>You work through five steps: your profile details, a photo of your ID, proof of address, a selfie, and a final review.</p></details>
+          <details class="faq-item glass"><summary>How do deposits and withdrawals appear</summary><p>Your dashboard shows every deposit, buy and withdrawal, and gives you your deposit address and a withdrawal form.</p></details>
+          <details class="faq-item glass"><summary>Can I connect a wallet</summary><p>Yes. You can connect a browser wallet such as MetaMask, and you can use your account without one if you prefer.</p></details>
         </div>
       </section>
 
@@ -178,9 +179,8 @@
   <div id="chatPanel" class="chat-panel hidden">
     <div class="chat-header"><strong>Support</strong><button class="icon-btn" data-close-chat>&times;</button></div>
     <div class="chat-body">
-      <p>Live chat is coming soon. In the meantime use the support form on the contact page.</p>
+      <p>We answer support requests by email. Include your account email and a short description of the issue.</p>
     </div>
-    <div class="chat-footer"><input type="text" placeholder="Type a message" disabled /><button class="btn btn-primary btn-sm" disabled>Send</button></div>
   </div>
 
   <script src="assets/js/app.js"></script>

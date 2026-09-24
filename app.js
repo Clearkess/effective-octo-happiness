@@ -7,19 +7,23 @@ const STORAGE = {
   theme: 'bhm_theme'
 };
 
-const DEFAULT_HOLDINGS = [
-  { symbol: 'BTC', name: 'Bitcoin', pct: 42, color: '#46a0ff', price: 104821, change: 2.1 },
-  { symbol: 'ETH', name: 'Ethereum', pct: 28, color: '#7c4dff', price: 5148, change: 1.4 },
-  { symbol: 'SOL', name: 'Solana', pct: 16, color: '#36d399', price: 311, change: -0.5 },
-  { symbol: 'USDC', name: 'USDC', pct: 14, color: '#ffd36f', price: 1, change: 0 }
+const MARKET_WATCH = [
+  { symbol: 'BTC', name: 'Bitcoin' },
+  { symbol: 'ETH', name: 'Ethereum' },
+  { symbol: 'SOL', name: 'Solana' },
+  { symbol: 'LINK', name: 'Chainlink' },
+  { symbol: 'USDC', name: 'USDC' }
 ];
 
 const appState = {
   user: null,
+  // Public market ticker symbols. Prices start null so a stale figure is
+  // never painted; fetchMarketPrices() fills them from live data.
+  markets: MARKET_WATCH.map(m => ({ ...m, price: null, change: null })),
   portfolio: {
-    totalBalance: 128440.92,
-    availableCash: 19200,
-    holdings: [...DEFAULT_HOLDINGS],
+    totalBalance: 0,
+    availableCash: 0,
+    holdings: [],
     wallet: null,
     kycSubmitted: false,
     kycStep: 0,
@@ -497,8 +501,9 @@ function setupAnimatedCounters() {
 }
 
 function syncMarketDOM() {
-  appState.portfolio.holdings.forEach(item => {
+  appState.markets.forEach(item => {
     const key = item.symbol.toLowerCase();
+    if (item.price === null || item.price === undefined) return;
     $$(`[data-price="${key}"]`).forEach(el => el.textContent = currency(item.price));
     $$(`[data-change="${key}"]`).forEach(el => {
       el.textContent = `${item.change >= 0 ? '+' : ''}${item.change}%`;
@@ -514,7 +519,7 @@ async function fetchMarketPrices() {
     const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`, { mode: 'cors' });
     const data = await response.json();
     const map = { BTC: 'bitcoin', ETH: 'ethereum', SOL: 'solana', USDC: null, LINK: 'chainlink' };
-    appState.portfolio.holdings = appState.portfolio.holdings.map(item => {
+    appState.markets = appState.markets.map(item => {
       const id = map[item.symbol];
       if (!id || !data[id]) return item;
       return { ...item, price: data[id].usd, change: Number((data[id].usd_24h_change || 0).toFixed(1)) };
