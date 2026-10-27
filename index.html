@@ -80,6 +80,42 @@ footer{border-top:1px solid var(--line);padding:50px 0 25px;background:#020a1c}.
 .faq-item.open .faq-q b{transform:rotate(45deg)}
 .faq-a{padding:0 18px 15px;font-size:11.5px;color:#9fa7bf;line-height:1.6}
 .faq-a p{margin:0}
+
+/* Responsive polish */
+.container{min-width:0}
+section,article,.card,.hero-grid>*{min-width:0}
+img,svg,canvas{max-width:100%}
+button,a.btn{touch-action:manipulation}
+:focus-visible{outline:3px solid #9b7bff;outline-offset:3px}
+@media(max-width:900px){
+ .nav-inner{gap:12px}
+ .hero-grid{gap:28px}
+ .hero{padding-bottom:42px}
+ .platform,.about,.faq{gap:16px}
+}
+@media(max-width:560px){
+ body{overflow-x:hidden}
+ .container{width:calc(100% - 28px)}
+ .logo{font-size:13px}
+ .nav-inner{gap:8px}
+ .nav-actions{gap:7px}
+ .nav-actions .btn{min-height:42px;padding:9px 11px}
+ h1{font-size:clamp(2.15rem,10vw,2.7rem);line-height:1.08;letter-spacing:-.04em}
+ h2{font-size:clamp(1.55rem,7vw,2rem)}
+ .hero{padding-top:38px}
+ .hero-grid{gap:24px}
+ .cards,.feature-row2,.tools,.stats,.step-grid{grid-template-columns:minmax(0,1fr)}
+ .stat{padding:16px}
+ .card,.feature-card,.tool-card{padding:18px}
+ .ticker{overflow:hidden}
+ .ticker-track{max-width:100%}
+ .cta-band{padding:22px 18px}
+ footer,.footer{gap:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
 </style>
 </head>
 <body>
