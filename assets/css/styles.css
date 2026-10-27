@@ -459,3 +459,18 @@ img, svg, canvas, video { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Extra-small screen safeguards for long addresses and multi-action rows */
+.address-row { flex-wrap: wrap; min-width: 0; }
+.address-code { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.kyc-actions { flex-wrap: wrap; }
+.kyc-actions .btn { flex: 1 1 140px; }
+.panel-head > * { min-width: 0; }
+@media (max-width: 600px) {
+  .nav-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+  .nav-actions > .btn { flex: 1 1 130px; width: auto; }
+  .chip-row { display: flex; flex-wrap: wrap; }
+  .chip-row .btn { flex: 1 1 110px; }
+  .qr-box { width: min(170px, 100%); }
+  .file-item { overflow-wrap: anywhere; }
+}
