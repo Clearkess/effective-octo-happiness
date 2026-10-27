@@ -116,6 +116,55 @@ button,a.btn{touch-action:manipulation}
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 
+
+/* Mobile-first navigation and visual consistency refinement */
+.menu-toggle{display:none;align-items:center;justify-content:center;flex-direction:column;gap:4px;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
+.menu-toggle span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor}
+.btn{min-height:44px;transition:transform .18s ease,filter .18s ease,background .18s ease}
+.btn:focus-visible,.menu-toggle:focus-visible{outline:3px solid #b49aff;outline-offset:3px}
+.card{transition:transform .2s ease,border-color .2s ease}
+.card:hover{transform:translateY(-3px);border-color:rgba(155,92,255,.42)}
+.hero p,.section-copy{line-height:1.75}
+@media(max-width:900px){
+  nav{position:sticky}
+  .nav-inner{position:relative}
+  .menu-toggle{display:flex;flex:0 0 44px;order:3}
+  .nav-actions{margin-left:auto;order:2}
+  .navlinks{display:none;position:absolute;top:calc(100% + 1px);left:0;right:0;z-index:30;padding:12px;border:1px solid var(--line);border-radius:0 0 16px 16px;background:rgba(4,12,31,.98);box-shadow:0 20px 40px rgba(0,0,0,.35);gap:0}
+  .navlinks.open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .navlinks a{padding:13px 12px;border-radius:10px;font-size:13px}
+  .navlinks a:hover{background:rgba(255,255,255,.06)}
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:24px}
+  .hero-grid>div:first-child{max-width:720px}
+  .phone-wrap{min-height:300px;max-width:460px;width:100%;margin-inline:auto}
+  .section{padding:54px 0}
+}
+@media(max-width:560px){
+  .container{width:calc(100% - 28px)}
+  .logo{font-size:12px;gap:7px}
+  .logo-mark{width:25px;height:25px;flex:0 0 25px}
+  .nav-inner{gap:8px}
+  .nav-actions{gap:6px}
+  .nav-actions .btn{padding:9px 10px;font-size:10px;white-space:nowrap}
+  .nav-actions .btn-outline{display:inline-flex}
+  .menu-toggle{width:40px;height:40px;flex-basis:40px}
+  .hero{padding-top:34px}
+  .hero-buttons{display:grid;grid-template-columns:1fr;gap:10px}
+  .hero-buttons .btn{width:100%}
+  .users{align-items:flex-start}
+  .phone-wrap{min-height:270px;transform:scale(.9);transform-origin:top center;margin-bottom:-20px}
+  .btc{right:-24px}.eth{right:-34px}.sol{left:-24px}
+  .cards,.feature-row2,.tools,.step-grid{grid-template-columns:minmax(0,1fr)}
+  .card{padding:20px}
+  .platform{padding:22px}
+  .stats{padding:22px;grid-template-columns:minmax(0,1fr)}
+  .about-copy{padding:24px}
+  .faq{gap:22px}
+  .footer-grid{gap:20px 14px}
+  .bottom{line-height:1.8}
+}
+@media(prefers-reduced-motion:reduce){.card:hover{transform:none}}
+
 </style>
 </head>
 <body>
@@ -123,9 +172,10 @@ button,a.btn{touch-action:manipulation}
 <nav>
   <div class="container nav-inner">
     <a class="logo" href="#"><i class="logo-mark"></i><span>BlockHarborMarkets</span></a>
-    <div class="navlinks">
+    <div class="navlinks" id="primary-navigation">
       <a href="#home">Home</a><a href="#how">How It Works</a><a href="#markets">Markets</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a>
     </div>
+    <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span><span></span></button>
     <div class="nav-actions"><a class="btn btn-outline" href="login.html">Login</a><a class="btn btn-primary" href="signup.html">Create Account</a></div>
   </div>
 </nav>
@@ -270,5 +320,33 @@ button,a.btn{touch-action:manipulation}
   });
 })();
 </script>
+
+<script>
+(function () {
+  var toggle = document.querySelector('.menu-toggle');
+  var nav = document.getElementById('primary-navigation');
+  if (!toggle || !nav) return;
+  function closeMenu() {
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open navigation menu');
+  }
+  toggle.addEventListener('click', function () {
+    var isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+  });
+  nav.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeMenu();
+  });
+  window.addEventListener('resize', function () {
+    if (window.matchMedia('(min-width: 901px)').matches) closeMenu();
+  });
+})();
+</script>
+
 </body>
 </html>
