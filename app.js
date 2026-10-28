@@ -310,9 +310,45 @@ function setupWalletButtons() {
   });
 }
 
+function setupDashboardRefresh() {
+  const button = $('#dashboardRefreshBtn');
+  if (!button) return;
+
+  button.addEventListener('click', async () => {
+    if (button.disabled) return;
+    const originalLabel = button.textContent;
+    const updatedAt = $('#dashboardUpdatedAt');
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = 'Refreshing…';
+
+    try {
+      const data = await api('/dashboard/overview');
+      appState.user = data.user;
+      appState.portfolio = data.portfolio;
+      appState.activity = data.activity;
+      renderDashboard();
+      updateUserUI();
+      if (updatedAt) updatedAt.textContent = `Updated just now · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      showToast('Dashboard updated', 'success');
+    } catch (error) {
+      if (updatedAt) updatedAt.textContent = 'Refresh failed. Check your connection and try again.';
+      showToast(error.message || 'Could not refresh dashboard', 'error');
+    } finally {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = originalLabel;
+    }
+  });
+}
+
 function renderHoldings() {
   const tbody = $('#holdingsTableBody');
   if (!tbody) return;
+  if (!appState.portfolio.holdings.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state holdings-empty">No holdings yet. Your portfolio positions will appear here when they are added.</td></tr>';
+    return;
+  }
   tbody.innerHTML = appState.portfolio.holdings.map(item => `
     <tr>
       <td>${item.name}</td>
@@ -326,6 +362,10 @@ function renderHoldings() {
 function renderActivity() {
   const list = $('#activityList');
   if (!list) return;
+  if (!appState.activity.length) {
+    list.innerHTML = '<li class="empty-state activity-empty">No recent activity yet. Account updates will show up here.</li>';
+    return;
+  }
   list.innerHTML = appState.activity.map(item => `<li><span>${item.label}</span><em>${formatTimestamp(item.time)}</em></li>`).join('');
 }
 
@@ -349,6 +389,10 @@ function renderAllocationChart() {
   const mount = $('#allocationChart');
   if (!mount) return;
   const holdings = appState.portfolio.holdings;
+  if (!holdings.length) {
+    mount.innerHTML = '<div class="empty-state allocation-empty"><strong>No allocation data yet</strong><span>Your asset breakdown will appear here once holdings are available.</span></div>';
+    return;
+  }
   const radius = 76;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
@@ -803,6 +847,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupStrengthMeter();
   bindLogoutButtons();
   setupWalletButtons();
+  setupDashboardRefresh();
   setupDepositActions();
   setupWithdrawForm();
   setupSettingsForm();
