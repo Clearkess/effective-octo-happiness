@@ -334,9 +334,9 @@ function renderTransactionsPage() {
   if (!body) return;
 
   const transactions = Array.isArray(appState.transactions) ? appState.transactions : [];
-  const normalizeStatus = (value) => String(value || 'unknown').trim().toLowerCase();
+  const normalizeStatus = (value) => String(value || 'unknown').trim().toLowerCase().replace(/[_-]+/g, ' ');
   const statusIs = (item, choices) => choices.includes(normalizeStatus(item.status));
-  const pendingCount = transactions.filter(item => statusIs(item, ['pending', 'processing', 'submitted', 'under review', 'awaiting review'])).length;
+  const pendingCount = transactions.filter(item => statusIs(item, ['pending', 'processing', 'submitted', 'under review', 'in review', 'awaiting review'])).length;
   const completedCount = transactions.filter(item => statusIs(item, ['completed', 'complete', 'successful', 'success', 'approved'])).length;
 
   const count = $('#txCount');
