@@ -372,17 +372,57 @@ function renderActivity() {
 function renderTransactionsPage() {
   const body = $('#transactionsTableBody');
   if (!body) return;
-  body.innerHTML = appState.transactions.map(item => `
-    <tr>
-      <td>${item.type}</td>
-      <td>${item.asset}</td>
-      <td>${item.amount}</td>
-      <td>${item.value}</td>
-      <td>${item.status}</td>
-      <td>${item.when}</td>
-    </tr>
-  `).join('');
-  $('#txCount') && ($('#txCount').textContent = `${appState.transactions.length} items`);
+
+  const transactions = Array.isArray(appState.transactions) ? appState.transactions : [];
+  const normalizeStatus = (value) => String(value || 'unknown').trim().toLowerCase();
+  const statusIs = (item, choices) => choices.includes(normalizeStatus(item.status));
+  const pendingCount = transactions.filter(item => statusIs(item, ['pending', 'processing', 'submitted', 'under review', 'awaiting review'])).length;
+  const completedCount = transactions.filter(item => statusIs(item, ['completed', 'complete', 'successful', 'success', 'approved'])).length;
+
+  const count = $('#txCount');
+  const pending = $('#txPendingCount');
+  const completed = $('#txCompletedCount');
+  if (count) count.textContent = String(transactions.length);
+  if (pending) pending.textContent = String(pendingCount);
+  if (completed) completed.textContent = String(completedCount);
+
+  const escapeHTML = (value) => String(value ?? '—').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+
+  if (!transactions.length) {
+    body.innerHTML = '<tr><td colspan="6"><div class="empty-state transaction-empty"><strong>No transactions yet</strong><span>Your deposits, withdrawals and other account activity will appear here.</span></div></td></tr>';
+    const latestStatus = $('#txLatestStatus');
+    if (latestStatus) latestStatus.textContent = 'No activity';
+    return;
+  }
+
+  const sorted = [...transactions].sort((left, right) => {
+    const leftTime = new Date(left.when || left.created_at || 0).getTime();
+    const rightTime = new Date(right.when || right.created_at || 0).getTime();
+    return (Number.isNaN(rightTime) ? 0 : rightTime) - (Number.isNaN(leftTime) ? 0 : leftTime);
+  });
+  const latestStatus = $('#txLatestStatus');
+  if (latestStatus) latestStatus.textContent = String(sorted[0].status || 'Unknown');
+
+  body.innerHTML = sorted.map(item => {
+    const status = normalizeStatus(item.status);
+    const statusClass = ['completed', 'complete', 'successful', 'success', 'approved'].includes(status)
+      ? 'transaction-status--success'
+      : ['pending', 'processing', 'submitted', 'under review', 'awaiting review'].includes(status)
+        ? 'transaction-status--pending'
+        : ['failed', 'rejected', 'cancelled', 'canceled'].includes(status)
+          ? 'transaction-status--failed' : 'transaction-status--neutral';
+    const timestamp = item.when || item.created_at || item.createdAt;
+    return `<tr>
+      <td>${escapeHTML(item.type)}</td>
+      <td>${escapeHTML(item.asset)}</td>
+      <td>${escapeHTML(item.amount)}</td>
+      <td>${escapeHTML(item.value)}</td>
+      <td><span class="transaction-status ${statusClass}">${escapeHTML(item.status || 'Unknown')}</span></td>
+      <td>${escapeHTML(formatTimestamp(timestamp))}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderAllocationChart() {
