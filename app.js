@@ -798,6 +798,8 @@ async function loadProtectedPageData() {
       appState.activity = data.activity;
       renderDashboard();
       updateUserUI();
+      const updatedAt = $('#dashboardUpdatedAt');
+      if (updatedAt) updatedAt.textContent = `Updated just now · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     }));
   }
 
