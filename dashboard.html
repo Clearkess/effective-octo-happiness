@@ -50,10 +50,12 @@
         <div>
           <div class="eyebrow">Portfolio overview</div>
           <h1>Good morning, <span data-user-firstname>Alex</span></h1>
-          <div id="portfolioInline" class="inline-stat">4 tracked assets</div>
+          <div id="portfolioInline" class="inline-stat">Your portfolio at a glance</div>
+          <div id="dashboardUpdatedAt" class="dashboard-updated muted" aria-live="polite">Account data updates when you refresh.</div>
         </div>
         <div class="topbar-actions panel-actions">
-          <button class="btn btn-secondary" data-quick-link="deposit.html">Deposit</button>
+          <button class="btn btn-ghost" id="dashboardRefreshBtn" type="button" aria-label="Refresh dashboard data">↻ Refresh</button>
+          <button class="btn btn-secondary" data-quick-link="deposit.html" type="button">Deposit</button>
           <button class="btn btn-primary" data-quick-link="withdraw.html">Withdraw</button>
         </div>
       </header>
@@ -67,10 +69,12 @@
       <section class="dashboard-columns">
         <div class="panel glass large">
           <div class="panel-head"><h2>Holdings</h2><span class="muted" id="holdingsNote">Your positions</span></div>
-          <table class="holdings-table">
-            <thead><tr><th>Asset</th><th>Allocation</th><th>Price</th><th>24h</th></tr></thead>
-            <tbody id="holdingsTableBody"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="holdings-table">
+              <thead><tr><th scope="col">Asset</th><th scope="col">Allocation</th><th scope="col">Price</th><th scope="col">24h</th></tr></thead>
+              <tbody id="holdingsTableBody"></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="stack-col">
