@@ -459,3 +459,46 @@ img, svg, canvas, video { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Transaction history polish */
+.transaction-summary .summary-card strong { font-variant-numeric: tabular-nums; }
+.transaction-panel { min-width: 0; }
+.transaction-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 14px;
+}
+.transaction-table { width: 100%; min-width: 720px; border-collapse: collapse; }
+.transaction-table th,
+.transaction-table td { padding: 14px 16px; text-align: left; white-space: nowrap; }
+.transaction-table tbody tr + tr { border-top: 1px solid var(--panel-border); }
+.transaction-status {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.transaction-status--success { color: var(--success); background: rgba(54,211,153,.10); border-color: rgba(54,211,153,.22); }
+.transaction-status--pending { color: var(--warning); background: rgba(255,211,111,.10); border-color: rgba(255,211,111,.22); }
+.transaction-status--failed { color: var(--danger); background: rgba(255,123,123,.10); border-color: rgba(255,123,123,.22); }
+.transaction-status--neutral { color: var(--muted); background: rgba(148,163,184,.10); border-color: var(--panel-border); }
+.transaction-empty { display: grid; justify-items: center; gap: 8px; padding: 26px 12px; text-align: center; }
+.transaction-empty strong { font-size: 1rem; }
+.transaction-empty span { color: var(--muted); white-space: normal; }
+.transaction-table-wrap:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .transaction-summary { grid-template-columns: 1fr; gap: 12px; }
+  .transaction-summary .summary-card { padding: 18px; }
+  .transaction-panel { padding: 16px; }
+  .transaction-panel .panel-head { align-items: flex-start; flex-wrap: wrap; }
+  .transaction-table th,
+  .transaction-table td { padding: 12px; }
+}
