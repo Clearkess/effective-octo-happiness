@@ -31,18 +31,20 @@
       <p class="lead small">Deposits, trades, verification milestones and withdrawals.</p>
     </section>
 
-    <section class="cards-3 section">
-      <div class="summary-card glass"><span class="muted">Entries</span><strong id="txCount">4 items</strong></div>
-      <div class="summary-card glass"><span class="muted">Latest status</span><strong>Mixed</strong></div>
-      <div class="summary-card glass"><span class="muted">Export readiness</span><strong>UI only</strong></div>
+    <section class="cards-3 section transaction-summary" aria-label="Transaction summary">
+      <div class="summary-card glass"><span class="muted">Total transactions</span><strong id="txCount">—</strong></div>
+      <div class="summary-card glass"><span class="muted">Pending</span><strong id="txPendingCount">—</strong></div>
+      <div class="summary-card glass"><span class="muted">Completed</span><strong id="txCompletedCount">—</strong></div>
     </section>
 
-    <section class="panel glass">
+    <section class="panel glass transaction-panel">
       <div class="panel-head"><h2>All activity</h2><div class="chip-row"><a class="btn btn-secondary btn-sm" href="deposit.html">Deposit</a><a class="btn btn-secondary btn-sm" href="withdraw.html">Withdraw</a></div></div>
-      <table class="data-table">
-        <thead><tr><th>Type</th><th>Asset</th><th>Amount</th><th>Value</th><th>Status</th><th>Time</th></tr></thead>
-        <tbody id="transactionsTableBody"></tbody>
-      </table>
+      <div class="table-wrap transaction-table-wrap" role="region" aria-label="Transaction history" tabindex="0">
+        <table class="data-table transaction-table">
+          <thead><tr><th scope="col">Type</th><th scope="col">Asset</th><th scope="col">Amount</th><th scope="col">Value</th><th scope="col">Status</th><th scope="col">Time</th></tr></thead>
+          <tbody id="transactionsTableBody"><tr><td colspan="6" class="muted">Loading transactions…</td></tr></tbody>
+        </table>
+      </div>
     </section>
   <script src="assets/js/app.js"></script>
 </body>
