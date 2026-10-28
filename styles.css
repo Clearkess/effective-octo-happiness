@@ -459,3 +459,85 @@ img, svg, canvas, video { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Dashboard UX polish */
+.dashboard-updated {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+#dashboardRefreshBtn {
+  border: 1px solid var(--panel-border);
+  min-height: 44px;
+}
+#dashboardRefreshBtn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+  transform: none;
+}
+#dashboardRefreshBtn:focus-visible,
+.sidebar-nav a:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap .holdings-table {
+  min-width: 500px;
+}
+.holdings-empty {
+  min-width: 0 !important;
+  text-align: left;
+  line-height: 1.6;
+}
+.activity-empty,
+.allocation-empty {
+  line-height: 1.6;
+  text-align: left;
+}
+.allocation-empty {
+  display: grid;
+  gap: 6px;
+  padding: 20px 4px;
+}
+.allocation-empty strong {
+  font-size: 1rem;
+  margin: 0;
+}
+.allocation-empty span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+@media (max-width: 600px) {
+  .dashboard-topbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .dashboard-topbar h1 {
+    font-size: clamp(1.55rem, 6vw, 2rem);
+    line-height: 1.2;
+  }
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .topbar-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .sidebar-nav a {
+    transition: none !important;
+  }
+}
